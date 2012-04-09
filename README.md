@@ -110,9 +110,9 @@ Get all existing assets in the binary and other external folders (if existing)<b
 
 wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Function success, Function fail);
 <br />
-    * downloads a file to native App directory @ ./ + gameDir+ / +filePathToBeStoredWithFilename
-    * A success returns URI string like; file://documents/settings/img/cards/card001.jpg
-    * example; 
+    * downloads a file to native App directory @ ./ + gameDir+ / +filePathToBeStoredWithFilename <br />
+    * A success returns URI string like; file://documents/settings/img/cards/card001.jpg <br />
+    * example;  <br />
 <pre><code>
 {
 
@@ -123,16 +123,16 @@ wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Functi
 
 wizAssets.deleteFiles(Array manyURIs , Function success, Function fail );
 <br />
-    * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg" , "file://documents/settings/img/cards/card002.jpg " .. ]
-    * if you do specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards
-    * the array CAN contain one URI string 
+    * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg" , "file://documents/settings/img/cards/card002.jpg " .. ] <br />
+    * if you do specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
+    * the array CAN contain one URI string  <br />
 
 
 
 wizAssets.getFileURI(String filePathWithFilename, Function success, Function fail);
 <br />
-    * A success returns URI string like file://documents/settings/img/cards/card001.jpg
-    * example; 
+    * A success returns URI string like file://documents/settings/img/cards/card001.jpg <br />
+    * example;  <br />
 <pre><code>
 {
 
@@ -143,7 +143,7 @@ wizAssets.getFileURI(String filePathWithFilename, Function success, Function fai
 
 wizAssets.getFileURIs(Function success, Function fail);
 <br />
-    * A success returns URI hashmap such as 
+    * A success returns URI hashmap such as  <br />
 <pre><code>
 {
 
