@@ -1,10 +1,11 @@
 /* WizAssetsPlugin - IOS side of the bridge to WizAssetsPlugin JavaScript for PhoneGap
  *
- * @author WizCorp Inc. [ Incorporated Wizards ] 
- * @copyright 2011
+ * @author Ally Ogilvie
+ * @copyright WizCorp Inc. [ Incorporated Wizards ] 2011
  * @file WizAssetsPlugin.m for PhoneGap
  *
- */ 
+ *
+ */
 
 #import "WizAssetsPlugin.h"
 #import <PhoneGap/JSON.h>
@@ -81,33 +82,17 @@
                 [urlData writeToFile:filePath atomically:YES];
                           
                 returnString = filePath;
-                
-                /*
-                 WizLog(@"Path: %@", returnString);
-                 pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsString:returnString];
-                 [self writeJavascript: [pluginResult toSuccessCallbackString:downloadCallback]];
-                 return;
-                 */
-                
+                               
             } else {
                 
                 // Fail to download
                 
                 returnString = @"error - failed download";
-                /*
-                pluginResult = [PluginResult resultWithStatus:PGCommandStatus_ERROR messageAsString:returnString];
-                [self writeJavascript: [pluginResult toErrorCallbackString:downloadCallback]];
-                return;
-                */
+
             }
             
         } else {
-            /*
-            returnString = [NSString stringWithFormat:@"urlfail - %@", urlString];
-            pluginResult = [PluginResult resultWithStatus:PGCommandStatus_ERROR messageAsString:returnString];
-            [self writeJavascript: [pluginResult toErrorCallbackString:downloadCallback]];
-            return;
-            */
+
             WizLog(@"ERROR: URL no exist");
             returnString = @"error - bad url";
         }
@@ -170,13 +155,7 @@
     
     int count = [arguments count];
 	if(count > 1) {
-        
-        // wait for callback
-/*
-        PluginResult* pluginResult = [PluginResult resultWithStatus:PGCommandStatus_NO_RESULT];
-        [pluginResult setKeepCallbackAsBool:YES];
-        [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
-*/        
+              
         // start in background, pass though strings
         [self performSelectorInBackground:@selector(backgroundDownload:) withObject:arguments];
         

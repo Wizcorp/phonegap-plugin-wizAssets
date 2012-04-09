@@ -1,10 +1,11 @@
 /* WizAssetsPlugin - IOS side of the bridge to WizAssetsPlugin JavaScript for PhoneGap
  *
- * @author WizCorp Inc. [ Incorporated Wizards ] 
- * @copyright 2011
+ * @author Ally Ogilvie
+ * @copyright WizCorp Inc. [ Incorporated Wizards ] 2011
  * @file WizAssetsPlugin.h for PhoneGap
  *
- */ 
+ *
+ */
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -25,7 +26,7 @@
 - (void)getFileURIs:(NSArray*)arguments withDict:(NSDictionary*)options;
 - (void)deleteFile:(NSArray*)arguments withDict:(NSDictionary*)options;
 - (void)deleteFiles:(NSArray*)arguments withDict:(NSDictionary*)options;
-- (void)purgeEmptyDirectories:(NSArray*)arguments withDict:(NSDictionary*)options;
+- (void)purgeEmptyDirectories:(NSArray*)arguments withDict:(NSDictionary*)optioURIError()
 
 - (void)backgroundDownload:(NSArray*)arguments;
 

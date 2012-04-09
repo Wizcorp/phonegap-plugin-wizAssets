@@ -1,7 +1,7 @@
 /* Download and show, PhoneGap Example
  *
- * @author WizCorp Inc. [ Incorporated Wizards ] 
- * @copyright 2011
+ * @author Ally Ogilvie
+ * @copyright WizCorp Inc. [ Incorporated Wizards ] 2011
  * @file - wizAssets.js
  * @about - JavaScript download and update asset example for PhoneGap
  *
@@ -12,23 +12,23 @@
 var wizAssets = { 
     
     
-	downloadFile: function(a, b, s, f) {
+	downloadFile: function(url, filePath, s, f) {
 	    
 	    window.setTimeout(function () {
-	                      PhoneGap.exec(s, f, "WizAssetsPlugin", "downloadFile", [a, b]);
+	                      PhoneGap.exec(s, f, "WizAssetsPlugin", "downloadFile", [url, filePath]);
 	                      }, 0);
 	},
 	    
-	deleteFile: function(a, s, f) {
+	deleteFile: function(uri, s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "deleteFile", [a]);
+	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "deleteFile", [uri]);
 	    
 	},
 	    
 	    
-	deleteFiles: function(a, s, f) {
+	deleteFiles: function(uris, s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "deleteFiles", a );
+	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "deleteFiles", uris );
 	    
 	},
 	    
@@ -40,9 +40,9 @@ var wizAssets = {
 	},
 	    
 	    
-	getFileURI: function(a, s, f) {
+	getFileURI: function(uri, s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "getFileURI", [a] );
+	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "getFileURI", [uri] );
 	    
 	},
 	    
@@ -55,15 +55,6 @@ var wizAssets = {
 	removeProgressBar: function() {
 	    
 	    return PhoneGap.exec(null, null, "WizAssetsPlugin", "removeProgressBar", [] );
-	    
-	},
-	    
-	purgeEmptyDirectories: function(s, f) {
-	    // TODO: implement this function
-	    s();
-	    
-	    
-	    //return PhoneGap.exec(null, null, "WizAssetsPlugin", "removeProgressBar", [] );
 	    
 	}
     
