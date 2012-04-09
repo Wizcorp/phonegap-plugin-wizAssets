@@ -56,7 +56,7 @@ Value : WizAssetsPlugin<br />
 
 
 
-# INSTALL (Android BETA!): #
+# INSTALL (Android): #
 
 Project tree<br />
 
@@ -102,7 +102,8 @@ wizAman = new WizAssetManager(this.getApplicationContext() );
 <br />
 <br />
 <br />
-# EXAMPLE CODE : #
+
+# EXAMPLE CODE #
 
 <br />
 <br />
