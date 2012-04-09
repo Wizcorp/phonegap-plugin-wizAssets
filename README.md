@@ -23,6 +23,7 @@ Project tree<br />
 project
 	/ www
 		-index.html
+		/ assets [store your app assets here]
 		/ phonegap
 			/ plugin
 				/ wizAssets
