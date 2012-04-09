@@ -109,7 +109,7 @@ wizAman = new WizAssetManager(this.getApplicationContext() );
 Get all existing assets in the binary and other external folders (if existing)<br />
 
 wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Function success, Function fail);
-
+<br />
     * downloads a file to native App directory @ ./ + gameDir+ / +filePathToBeStoredWithFilename
     * A success returns URI string like; file://documents/settings/img/cards/card001.jpg
     * example; 
@@ -122,7 +122,7 @@ wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Functi
 </code></pre>
 
 wizAssets.deleteFiles(Array manyURIs , Function success, Function fail );
-
+<br />
     * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg" , "file://documents/settings/img/cards/card002.jpg " .. ]
     * if you do specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards
     * the array CAN contain one URI string 
@@ -130,7 +130,7 @@ wizAssets.deleteFiles(Array manyURIs , Function success, Function fail );
 
 
 wizAssets.getFileURI(String filePathWithFilename, Function success, Function fail);
-
+<br />
     * A success returns URI string like file://documents/settings/img/cards/card001.jpg
     * example; 
 <pre><code>
@@ -142,7 +142,7 @@ wizAssets.getFileURI(String filePathWithFilename, Function success, Function fai
 </code></pre>
 
 wizAssets.getFileURIs(Function success, Function fail);
-
+<br />
     * A success returns URI hashmap such as 
 <pre><code>
 {
