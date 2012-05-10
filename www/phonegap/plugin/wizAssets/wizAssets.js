@@ -15,46 +15,46 @@ var wizAssets = {
 	downloadFile: function(url, filePath, s, f) {
 	    
 	    window.setTimeout(function () {
-	                      PhoneGap.exec(s, f, "WizAssetsPlugin", "downloadFile", [url, filePath]);
+	                      cordova.exec(s, f, "WizAssetsPlugin", "downloadFile", [url, filePath]);
 	                      }, 0);
 	},
 	    
 	deleteFile: function(uri, s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "deleteFile", [uri]);
+	    return cordova.exec(s, f, "WizAssetsPlugin", "deleteFile", [uri]);
 	    
 	},
 	    
 	    
 	deleteFiles: function(uris, s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "deleteFiles", uris );
+	    return cordova.exec(s, f, "WizAssetsPlugin", "deleteFiles", uris );
 	    
 	},
 	    
 	    
 	getFileURIs: function(s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "getFileURIs", [] );
+	    return cordova.exec(s, f, "WizAssetsPlugin", "getFileURIs", [] );
 	    
 	},
 	    
 	    
 	getFileURI: function(uri, s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "getFileURI", [uri] );
+	    return cordova.exec(s, f, "WizAssetsPlugin", "getFileURI", [uri] );
 	    
 	},
 	    
 	createProgressBar: function(s, f) {
 	    
-	    return PhoneGap.exec(s, f, "WizAssetsPlugin", "createProgressBar", [] );
+	    return cordova.exec(s, f, "WizAssetsPlugin", "createProgressBar", [] );
 	    
 	},
 	    
 	removeProgressBar: function() {
 	    
-	    return PhoneGap.exec(null, null, "WizAssetsPlugin", "removeProgressBar", [] );
+	    return cordova.exec(null, null, "WizAssetsPlugin", "removeProgressBar", [] );
 	    
 	}
     
