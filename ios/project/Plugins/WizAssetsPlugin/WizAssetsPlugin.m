@@ -316,7 +316,7 @@
 - (void)getFileURIs:(NSArray*)arguments withDict:(NSDictionary*)options
 {
     WizLog(@"[WizAssetsPlugin] ******* getfileURIs-> " );
-    [self.appDelegate updateLoaderLabel:@"Checking for updates..."];
+    // [self.appDelegate updateLoaderLabel:@"Checking for updates..."];
     
     
     NSString *callbackId = [arguments objectAtIndex:0];
@@ -426,7 +426,7 @@
     }
     
     
-    [self writeJavascript: [CDVPluginResult toSuccessCallbackString:callbackId]];
+    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
     
 }
 
