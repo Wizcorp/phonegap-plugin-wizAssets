@@ -1,4 +1,4 @@
-/* WizAssetsPlugin - IOS side of the bridge to WizAssetsPlugin JavaScript for PhoneGap
+/* WizAssetsPlugin - IOS side of the bridge to WizAssetsPlugin JavaScript for Cordova
  *
  * @author Ally Ogilvie
  * @copyright WizCorp Inc. [ Incorporated Wizards ] 2011
@@ -9,10 +9,14 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <PhoneGap/PGPlugin.h>
+#ifdef CORDOVA_FRAMEWORK
+#import <Cordova/CDVPlugin.h>
+#else
+#import "CDVPlugin.h"
+#endif
 
 
-@interface WizAssetsPlugin : PGPlugin <UIWebViewDelegate> {
+@interface WizAssetsPlugin : CDVPlugin <UIWebViewDelegate> {
     
     int scanCounter;
     NSMutableArray *storePaths;
@@ -26,7 +30,7 @@
 - (void)getFileURIs:(NSArray*)arguments withDict:(NSDictionary*)options;
 - (void)deleteFile:(NSArray*)arguments withDict:(NSDictionary*)options;
 - (void)deleteFiles:(NSArray*)arguments withDict:(NSDictionary*)options;
-- (void)purgeEmptyDirectories:(NSArray*)arguments withDict:(NSDictionary*)optioURIError()
+// - (void)purgeEmptyDirectories:(NSArray*)arguments withDict:(NSDictionary*)options();
 
 - (void)backgroundDownload:(NSArray*)arguments;
 

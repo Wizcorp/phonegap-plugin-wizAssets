@@ -1,11 +1,20 @@
 
 
-
 # PLUGIN: 
 
-phonegap-plugin-wizAssets
+phonegap-plugin-wizAssets<br />
+version : 1.7<br />
+last update : 10/05/2012<br />
 
 
+# CHANGELOG: 
+<br />
+- Updated for Cordova 1.7
+
+
+# KNOWN ISSUES:
+<br />
+n/a
 
 # DESCRIPTION :
 
@@ -40,7 +49,7 @@ project
 
 1 ) Arrange files to structure seen above.
 
-2 ) Add to phonegap.plist in the plugins array;<br />
+2 ) Add to cordova.plist in the plugins array;<br />
 Key : WizAssetsPlugin<br />
 Type : String<br />
 Value : WizAssetsPlugin<br />
@@ -59,44 +68,7 @@ Value : WizAssetsPlugin<br />
 
 # INSTALL (Android): #
 
-Project tree<br />
-
-<pre><code>
-project
-	/ assets
-		/ www
-			-index.html
-			/ assets [store your app assets here]
-			/ phonegap
-				/js
-					/ phonegap.js
-				/ plugin
-					/ wizAssets
-						/ wizAssets.js	
-	/ src
-		/ jp.wizcorp.phonegap.plugin.WizAssets
-			/ WizAssetManager.java
-			/ WizAssetPlugin.java
-</code></pre>
-
-
-
-1 ) Arrange files to structure seen above.
-
-
-
-2 ) Remember to add the plugin to plugins.xml
-
-
-3 ) Add \<script\> tag to your index.html<br />
-\<script type="text/javascript" charset="utf-8" src="phonegap/plugin/wizAssets/wizAssets.js"\>\</script\><br />
-(assuming your index.html is setup like tree above)
-
-
-Add something like the following to your main Activity.
-<pre><code>
-wizAman = new WizAssetManager(this.getApplicationContext() );
-</pre></code>
+coming soon...
 
 
 

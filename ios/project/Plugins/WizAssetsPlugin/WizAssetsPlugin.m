@@ -8,8 +8,6 @@
  */
 
 #import "WizAssetsPlugin.h"
-#import <PhoneGap/JSON.h>
-#import "WizAssetsPluginExtendPGdelegate.h"
 #import "WizDebugLog.h"
 
 @implementation WizAssetsPlugin 
@@ -22,7 +20,7 @@
  *
  */
 
-- (void) backgroundDownload:(NSArray*)arguments { 
+- (void)backgroundDownload:(NSArray*)arguments { 
 
     // Create a pool  
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];  
@@ -130,12 +128,12 @@
     
     if ([returnString rangeOfString:@"error"].location == NSNotFound) {
         // no error
-        PluginResult* pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsString:returnString];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnString];
         [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
         
     } else {
         // found error
-        PluginResult* pluginResult = [PluginResult resultWithStatus:PGCommandStatus_ERROR messageAsString:returnString];
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:returnString];
         [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
 
     }
@@ -161,13 +159,13 @@
         
     } else {
         
-        PluginResult* pluginResult;
+        CDVPluginResult* pluginResult;
         NSString *returnString;
         
         
 
         returnString = @"noParam";
-        pluginResult = [PluginResult resultWithStatus:PGCommandStatus_ERROR messageAsString:returnString];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:returnString];
         [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
         return;
     }
@@ -254,7 +252,7 @@
  */
 - (void)getFileURI:(NSArray*)arguments withDict:(NSDictionary*)options
 {
-    PluginResult* pluginResult;
+    CDVPluginResult* pluginResult;
     
     NSString *callbackId = [arguments objectAtIndex:0];
     NSString *findFile = [arguments objectAtIndex:1];
@@ -287,7 +285,7 @@
         // we have locally return same string
         returnURI = bundleSearchPath;
         
-        pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsString:returnURI];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
     } else {
         // check in app docs folder
         
@@ -302,7 +300,7 @@
         // return URI to storage folder
         returnURI = [resourceMap objectForKey:findFile];
         
-        pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsString:returnURI];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
     }
     
     [fileStruct release];
@@ -323,7 +321,7 @@
     
     NSString *callbackId = [arguments objectAtIndex:0];
     
-    PluginResult* pluginResult;
+    CDVPluginResult* pluginResult;
 
     // path to bundle resources
     NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
@@ -355,7 +353,7 @@
     // WizLog(@"[WizAssetsPlugin] ******* final assetMap-> %@  ", assetMap );
     
     
-    pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsDictionary:assetMap];
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
     [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
     
     [assetMap release];
@@ -372,8 +370,8 @@
     NSFileManager *filemgr;
     filemgr =[NSFileManager defaultManager];
     
-    PluginResult* pluginResult;
-    pluginResult = [PluginResult resultWithStatus:PGCommandStatus_ERROR];
+    CDVPluginResult* pluginResult;
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
     
     NSString *callbackId = [arguments objectAtIndex:0];
     NSString *filePath = [arguments objectAtIndex:1];
@@ -416,11 +414,11 @@
             if ([filemgr removeItemAtPath:filePath error:NULL ]) {
                 // success delete
                 WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", filePath);
-                pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK];
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
                 
             } else {
                 // cannot delete
-                pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsString:[NSString stringWithFormat:@"cannot delete or find file.. @%@ moving on.", filePath ]];
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[NSString stringWithFormat:@"cannot delete or find file.. @%@ moving on.", filePath ]];
             }
         }
         
@@ -428,7 +426,7 @@
     }
     
     
-    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+    [self writeJavascript: [CDVPluginResult toSuccessCallbackString:callbackId]];
     
 }
 
@@ -443,7 +441,7 @@
     NSFileManager *filemgr;
     filemgr =[NSFileManager defaultManager];
     
-    PluginResult* pluginResult;
+    CDVPluginResult* pluginResult;
     
     NSString *callbackId = [arguments objectAtIndex:0];
     
@@ -481,9 +479,9 @@
             
         }
         
-        pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     } else {
-        pluginResult = [PluginResult resultWithStatus:PGCommandStatus_ERROR messageAsString:@"noParam"];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"noParam"];
     }
     
     [fileArray release];
