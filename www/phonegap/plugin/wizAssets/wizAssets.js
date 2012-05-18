@@ -56,7 +56,13 @@ var wizAssets = {
 	    
 	    return cordova.exec(null, null, "WizAssetsPlugin", "removeProgressBar", [] );
 	    
-	}
+	},
+    
+    purgeEmptyDirectories: function(s, f) {
+        // todo
+        s();
+        
+    }
     
     
 };
