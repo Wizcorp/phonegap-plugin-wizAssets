@@ -3,13 +3,15 @@
 # PLUGIN: 
 
 phonegap-plugin-wizAssets<br />
-version : 1.7<br />
-last update : 10/05/2012<br />
+version : 1.9<br />
+last update : 06/11/2012<br />
 
 
 # CHANGELOG: 
 <br />
-- Updated for Cordova 1.7
+- Updated for Cordova 1.9
+- Changed deleteFile error handling.
+- Removed unimplemented plugin methods.
 
 
 # KNOWN ISSUES:
@@ -95,10 +97,21 @@ wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Functi
 }
 </code></pre>
 
+wizAssets.deleteFile(string URI , Function success, Function fail);
+<br />
+    * deletes the file specified by the URI <br />
+    * if the URI does not exist fail will be called with error NotFoundError <br />
+    * if the URI cannot be deleted (i.e. file resides in read-only memory) fail will be called with error NotModificationAllowedError <br />
+<pre><code>
+{
+    wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", function(e){ alert("success "+e) } , function(e){ alert("fail "+e) } ); 
+}
+</code></pre>
+
 wizAssets.deleteFiles(Array manyURIs , Function success, Function fail );
 <br />
     * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg" , "file://documents/settings/img/cards/card002.jpg " .. ] <br />
-    * if you do specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
+    * if you do not specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
     * the array CAN contain one URI string  <br />
 
 
