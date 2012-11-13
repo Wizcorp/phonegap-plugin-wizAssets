@@ -92,25 +92,25 @@ wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Functi
 <pre><code>
 {
 
-    wizAssets.downloadFile("http://google.com/logo.jpg" , "img/ui/logo.jpg", function(e){ alert("success "+e) } , function(e){ alert("fail "+e) } ); 
+    wizAssets.downloadFile("http://google.com/logo.jpg", "img/ui/logo.jpg", successCallback, failCallback );
 
 }
 </code></pre>
 
-wizAssets.deleteFile(string URI , Function success, Function fail);
+wizAssets.deleteFile(string URI, Function success, Function fail);
 <br />
     * deletes the file specified by the URI <br />
     * if the URI does not exist fail will be called with error NotFoundError <br />
     * if the URI cannot be deleted (i.e. file resides in read-only memory) fail will be called with error NotModificationAllowedError <br />
 <pre><code>
 {
-    wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", function(e){ alert("success "+e) } , function(e){ alert("fail "+e) } ); 
+    wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successCallback, failCallback);
 }
 </code></pre>
 
-wizAssets.deleteFiles(Array manyURIs , Function success, Function fail );
+wizAssets.deleteFiles(Array manyURIs, Function success, Function fail );
 <br />
-    * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg" , "file://documents/settings/img/cards/card002.jpg " .. ] <br />
+    * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg", "file://documents/settings/img/cards/card002.jpg " .. ] <br />
     * if you do not specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
     * the array CAN contain one URI string  <br />
 
@@ -123,7 +123,7 @@ wizAssets.getFileURI(String filePathWithFilename, Function success, Function fai
 <pre><code>
 {
 
-    wizAssets.getFileURI("img/ui/logo.jpg" , function(e){ alert("success "+e) } , function(e){ alert("fail "+e) } ); 
+    wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback );
 
 }
 </code></pre>
