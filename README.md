@@ -12,6 +12,8 @@ last update : 06/11/2012<br />
 - Updated for Cordova 1.9
 - Changed deleteFile error handling.
 - Removed unimplemented plugin methods.
+- Updated error handling to more closely follow the w3c file api error
+  conventions http://www.w3.org/TR/FileAPI/
 
 
 # KNOWN ISSUES:
