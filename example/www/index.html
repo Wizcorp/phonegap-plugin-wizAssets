@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<!--
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+# http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+#  KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+-->
+  <head>
+  <title></title>
+  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no;" />
+	<meta charset="utf-8">
+
+
+	<!-- iPad/iPhone specific css below, add after your main css >
+	<link rel="stylesheet" media="only screen and (max-device-width: 1024px)" href="ipad.css" type="text/css" />		
+	<link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="iphone.css" type="text/css" />		
+	-->
+	<!-- If your application is targeting iOS BEFORE 4.0 you MUST put json2.js from http://www.JSON.org/json2.js into your www directory and include it here -->
+	<script type="text/javascript" charset="utf-8" src="cordova-1.9.0.js"></script>
+    <script type="text/javascript" charset="utf-8" src="phonegap/plugin/wizAssets/wizAssets.js"></script>
+    <script type="text/javascript">
+
+
+	// If you want to prevent dragging, uncomment this section
+	/*
+	function preventBehavior(e) 
+	{ 
+      e.preventDefault(); 
+    };
+	document.addEventListener("touchmove", preventBehavior, false);
+	*/
+	
+	/* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
+	see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
+	for more details -jm */
+	/*
+	function handleOpenURL(url)
+	{
+		// TODO: do something with the url passed in.
+	}
+	*/
+	
+	function onBodyLoad()
+	{		
+		document.addEventListener("deviceready", onDeviceReady, false);
+	}
+	
+	/* When this function is called, Cordova has been initialized and is ready to roll */
+	/* If you are supporting your own protocol, the var invokeString will contain any arguments to the app launch.
+	see http://iphonedevelopertips.com/cocoa/launching-your-own-application-via-a-custom-url-scheme.html
+	for more details -jm */
+	function onDeviceReady()
+	{
+        if (!window.wizAssets) {
+            alert("Could not find wizAssets");
+        }
+	}
+    
+    function showImage(img, src, width, height, alt) {
+        var image = document.createElement("img");
+        image.src = src;
+        image.width = width;
+        image.height = height;
+        image.alt = alt;
+        image.id = img;
+            
+        // This next line will just add it to the <body> tag
+        document.body.appendChild(image);
+    }
+        
+    function hideImage(img) {
+        var image = document.getElementById(img);
+        if ( image ) {
+            // This next line will just remove
+            document.body.removeChild(image);
+            image = null;
+        }
+    }
+        
+    function downloadFile(download_button, delete_button, url, filepath, img) {
+        // Disable the download button and start download
+        document.getElementById(download_button).disabled = true;
+        window.wizAssets.downloadFile(url,
+                                      filepath,
+                                      function( fileUri ) {
+                                        // Show the image and enable delete button
+                                        alert("Download Success:\n" + fileUri);
+                                        showImage(img, fileUri , 276,110, fileUri);
+                                        document.getElementById(delete_button).disabled = false;
+                                      },
+                                      function( error ) {
+                                        // Enable the download button
+                                        alert("Download Fail:\n" + error);
+                                        document.getElementById(download_button).disabled = false;
+                                      });
+    }
+    
+    function deleteFile(path, download_button, delete_button, img) {
+        
+        // Define success callback for getting the URI.
+        function getFileURISuccessCallback(fileUri) {
+            
+            // Define success callback for deleting the URI.
+            function deleteFileSuccessCallback() {
+                // Hide the image, enable download button, and disable delete button
+                hideImage(img);
+                document.getElementById(download_button).disabled = false;
+                document.getElementById(delete_button).disabled = true;
+                alert("Delete Success:\n" + path + "\nURI:\n" + fileUri);
+            }
+            
+            // Define error callback for deleting the URI.
+            function deleteFileErrorCallback(error) {
+                alert("Delete Fail:\n" + error + "\nFile was probably already deleted.");
+            }
+            
+            // Delete the URI (and invoke appropriate callback).
+            window.wizAssets.deleteFile(fileUri, deleteFileSuccessCallback, deleteFileErrorCallback);
+        }
+        
+        // Define error callback for getting the URI.
+        function getFileURIErrorCallback(error) {
+            alert("Failed to get file URI");
+        }
+        
+        // Get the URI (and invoke appropriate callback).
+        window.wizAssets.getFileURI(path, getFileURISuccessCallback, getFileURIErrorCallback);
+    }
+        
+    function getFileURI( path ) {
+        window.wizAssets.getFileURI(path,
+                                    function( fileUri ) {
+                                        alert("Success:\n" + path + "\nURI is:\n" + fileUri);
+                                    },
+                                    function( error ) {
+                                        alert("Failed to get file URI");
+                                    });
+    }
+
+    function getFileURIs() {
+        window.wizAssets.getFileURIs(function( fileUriMap ) {
+                                        alert( "Found " + Object.keys(fileUriMap).length + " URIs" );
+                                        for (var i = 0; i < Object.keys(fileUriMap).length; i += 1) {
+                                            var key = Object.keys(fileUriMap)[i];
+                                            alert( key + "\nmaps to:\n" + fileUriMap[key] );
+                                        }
+                                     },
+                                     function( error ) {
+                                        alert("Failed to get file URIs");
+                                     });
+    }
+    
+    function deleteFiles( download_buttons, delete_buttons, images ) {
+        // We will retrieve the file URIs and then delete the URIs.
+        
+        // Define success callback for getting the URIs.
+        function getFileURIsSuccessCallback(fileUriMap) {
+            
+            // Define success callback for deleting the URIs.
+            function deleteFilesSuccessCallback() {
+                alert( "Delete Files Success" );
+                // Hide all images
+                for ( var i = 0; i < images.length; i++ ) {
+                    hideImage( images[i] );
+                }
+                // Enable all download buttons
+                for ( var i = 0; i < download_buttons.length; i++ ) {
+                    document.getElementById( download_buttons[i] ).disabled = false;
+                }
+                // Disable all delete buttons
+                for ( var i = 0; i < delete_buttons.length; i++ ) {
+                    document.getElementById( delete_buttons[i] ).disabled = true;
+                }
+            }
+            
+            // Define error callback for deleting the URIs.
+            function deleteFilesErrorCallback(error) {
+                alert("Delete Files Fail:\n" + error);
+            }
+            
+            // Delete the URIs (and invoke appropriate callback).
+            alert( "Deleting " + Object.keys(fileUriMap).length + " files" );
+            var files = [];
+            for ( var key in fileUriMap) {
+                files.push( fileUriMap[key] );
+            }
+            window.wizAssets.deleteFiles(files, deleteFilesSuccessCallback, deleteFilesErrorCallback);
+        }
+        
+        // Define error callback for getting the URIs.
+        function getFileURIsErrorCallback(error) {
+            alert("Failed to get file URIs");
+        }
+        
+        // Get the URIs (and invoke appropriate callback).
+        window.wizAssets.getFileURIs(getFileURIsSuccessCallback, getFileURIsErrorCallback);
+    }
+
+    </script>
+  </head>
+  <body onload="onBodyLoad()">
+      <h1>wizAssets plugin!</h1>
+      <input type="button" id="download_button_1" value="Download File 1"
+             onclick="downloadFile('download_button_1', 'delete_button_1', 'http://www.wizcorp.jp/wp-content/themes/business-lite/images/all/wizcorp-logo.png' , 'img/ui/wizcorp-logo.png', 'img1')" />
+      <input type="button" id="delete_button_1" value="Delete File 1" onclick="deleteFile('img/ui/wizcorp-logo.png', 'download_button_1', 'delete_button_1', 'img1')" disabled="true" />
+      <input type="button" id="push_button" value="Delete Files" onclick="deleteFiles( ['download_button_1', 'download_button_2'], ['delete_button_1', 'delete_button_2'], ['img1', 'img2'] )" />
+      <input type="button" id="download_button_2" value="Download File 2"
+             onclick="downloadFile('download_button_2', 'delete_button_2', 'https://www.google.com/images/srpr/logo3w.png' , 'img/ui/logo3w.png', 'img2')" />
+      <input type="button" id="delete_button_2" value="Delete File 2" onclick="deleteFile('img/ui/logo3w.png', 'download_button_2', 'delete_button_2', 'img2')" disabled="true" />
+      </br>
+      <input type="button" id="push_button" value="Get File URI 1" onclick="getFileURI('img/ui/wizcorp-logo.png')" />
+      <input type="button" id="push_button" value="Get File URI 2" onclick="getFileURI('img/ui/logo3w.png')" />
+      <input type="button" id="push_button" value="Get File URIs" onclick="getFileURIs()" />
+      <p>Experiment by pressing the buttons to manage assets.<br />
+  </body>
+</html>

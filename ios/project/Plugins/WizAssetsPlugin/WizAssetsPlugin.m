@@ -371,7 +371,6 @@
     filemgr =[NSFileManager defaultManager];
     
     CDVPluginResult* pluginResult;
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
     
     NSString *callbackId = [arguments objectAtIndex:0];
     NSString *filePath = [arguments objectAtIndex:1];
@@ -381,28 +380,6 @@
     
     // note: if no files sent here, still success (technically it is not an error as we success to delete nothing)
 
-    /*  old, was using file://localhost
-    if (filePath) {
-        
-        
-        // split filePath
-        NSMutableArray *pathSpliter = [[NSMutableArray alloc] initWithArray:[filePath componentsSeparatedByString:@"localhost"] copyItems:YES];
-        NSString *iphonePath = [pathSpliter lastObject];
-        
-        if ([filemgr removeItemAtPath:iphonePath error:NULL ]) {
-            // success delete
-            WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", iphonePath);
-            pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK];
-
-        } else {
-            // cannot delete
-            pluginResult = [PluginResult resultWithStatus:PGCommandStatus_OK messageAsString:[NSString stringWithFormat:@"cannot delete or find file.. @%@ moving on.", iphonePath ]];
-        }
-        
-       
-        [pathSpliter release];
-    }
-    */
     if (filePath) {
         
         
@@ -411,23 +388,30 @@
         NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
         if ([filePath rangeOfString:bundlePath].location == NSNotFound) {
             
-            if ([filemgr removeItemAtPath:filePath error:NULL ]) {
+            if ([filemgr removeItemAtPath:filePath error:nil ]) {
                 // success delete
                 WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", filePath);
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+                [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
                 
             } else {
                 // cannot delete
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[NSString stringWithFormat:@"cannot delete or find file.. @%@ moving on.", filePath ]];
+                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"NotFoundError"];
+                [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
             }
+        } else {
+            // cannot delete file in the bundle
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+                                             messageAsString:@"NoModificationAllowedError"];
+            [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
         }
         
         
+    } else {
+        // successfully deleted nothing
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
     }
-    
-    
-    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
-    
 }
 
 
