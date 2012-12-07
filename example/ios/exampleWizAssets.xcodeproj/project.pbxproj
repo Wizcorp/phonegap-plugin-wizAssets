@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F6BBAF891671CED700C28616 /* Cordova.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6BBAF881671CED700C28616 /* Cordova.framework */; };
 		F6F17C081643AAB300B8AE4C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6F17C071643AAB300B8AE4C /* Foundation.framework */; };
 		F6F17C0A1643AAB300B8AE4C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6F17C091643AAB300B8AE4C /* UIKit.framework */; };
 		F6F17C0C1643AAB300B8AE4C /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6F17C0B1643AAB300B8AE4C /* CoreGraphics.framework */; };
@@ -22,7 +23,6 @@
 		F6F17C201643AAB300B8AE4C /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6F17C1F1643AAB300B8AE4C /* CoreMedia.framework */; };
 		F6F17C261643AAB300B8AE4C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F6F17C241643AAB300B8AE4C /* InfoPlist.strings */; };
 		F6F17C281643AAB300B8AE4C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F6F17C271643AAB300B8AE4C /* main.m */; };
-		F6F17C2B1643AAB300B8AE4C /* Cordova.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6F17C2A1643AAB300B8AE4C /* Cordova.framework */; };
 		F6F17C301643AAB300B8AE4C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F6F17C2E1643AAB300B8AE4C /* Localizable.strings */; };
 		F6F17C341643AAB300B8AE4C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F6F17C321643AAB300B8AE4C /* Localizable.strings */; };
 		F6F17C381643AAB300B8AE4C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F6F17C361643AAB300B8AE4C /* Localizable.strings */; };
@@ -43,6 +43,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F6BBAF881671CED700C28616 /* Cordova.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cordova.framework; path = Frameworks/Cordova.framework; sourceTree = "<group>"; };
 		F6F17C031643AAB300B8AE4C /* exampleWizAssets.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = exampleWizAssets.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6F17C071643AAB300B8AE4C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		F6F17C091643AAB300B8AE4C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -61,7 +62,6 @@
 		F6F17C251643AAB300B8AE4C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		F6F17C271643AAB300B8AE4C /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		F6F17C291643AAB300B8AE4C /* exampleWizAssets-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "exampleWizAssets-Prefix.pch"; sourceTree = "<group>"; };
-		F6F17C2A1643AAB300B8AE4C /* Cordova.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cordova.framework; path = /Users/Shared/Cordova/Frameworks/Cordova.framework; sourceTree = "<absolute>"; };
 		F6F17C2F1643AAB300B8AE4C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = Resources/en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F6F17C331643AAB300B8AE4C /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = Resources/es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		F6F17C371643AAB300B8AE4C /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = Resources/de.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -92,6 +92,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6BBAF891671CED700C28616 /* Cordova.framework in Frameworks */,
 				F6F17C081643AAB300B8AE4C /* Foundation.framework in Frameworks */,
 				F6F17C0A1643AAB300B8AE4C /* UIKit.framework in Frameworks */,
 				F6F17C0C1643AAB300B8AE4C /* CoreGraphics.framework in Frameworks */,
@@ -105,7 +106,6 @@
 				F6F17C1C1643AAB300B8AE4C /* SystemConfiguration.framework in Frameworks */,
 				F6F17C1E1643AAB300B8AE4C /* MobileCoreServices.framework in Frameworks */,
 				F6F17C201643AAB300B8AE4C /* CoreMedia.framework in Frameworks */,
-				F6F17C2B1643AAB300B8AE4C /* Cordova.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -140,6 +140,7 @@
 		F6F17C061643AAB300B8AE4C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				F6BBAF881671CED700C28616 /* Cordova.framework */,
 				F6F17C071643AAB300B8AE4C /* Foundation.framework */,
 				F6F17C091643AAB300B8AE4C /* UIKit.framework */,
 				F6F17C0B1643AAB300B8AE4C /* CoreGraphics.framework */,
@@ -160,7 +161,6 @@
 		F6F17C211643AAB300B8AE4C /* exampleWizAssets */ = {
 			isa = PBXGroup;
 			children = (
-				F6F17C2A1643AAB300B8AE4C /* Cordova.framework */,
 				F6F17C2C1643AAB300B8AE4C /* Resources */,
 				F6F17C4D1643AAB400B8AE4C /* Classes */,
 				F6F17C561643AAB400B8AE4C /* Plugins */,
@@ -514,7 +514,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = /Users/Shared/Cordova/Frameworks;
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/Frameworks\"";
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "exampleWizAssets/exampleWizAssets-Prefix.pch";
@@ -544,7 +544,7 @@
 				ALWAYS_SEARCH_USER_PATHS = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				FRAMEWORK_SEARCH_PATHS = /Users/Shared/Cordova/Frameworks;
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/Frameworks\"";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "exampleWizAssets/exampleWizAssets-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
