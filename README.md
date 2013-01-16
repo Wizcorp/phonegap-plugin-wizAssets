@@ -3,13 +3,17 @@
 # PLUGIN: 
 
 phonegap-plugin-wizAssets<br />
-version : 1.7<br />
-last update : 10/05/2012<br />
+version : 1.9<br />
+last update : 06/11/2012<br />
 
 
 # CHANGELOG: 
 <br />
-- Updated for Cordova 1.7
+- Updated for Cordova 1.9
+- Changed deleteFile error handling.
+- Removed unimplemented plugin methods.
+- Updated error handling to more closely follow the w3c file api error
+  conventions http://www.w3.org/TR/FileAPI/
 
 
 # KNOWN ISSUES:
@@ -90,15 +94,26 @@ wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Functi
 <pre><code>
 {
 
-    wizAssets.downloadFile("http://google.com/logo.jpg" , "img/ui/logo.jpg", function(e){ alert("success "+e) } , function(e){ alert("fail "+e) } ); 
+    wizAssets.downloadFile("http://google.com/logo.jpg", "img/ui/logo.jpg", successCallback, failCallback );
 
 }
 </code></pre>
 
-wizAssets.deleteFiles(Array manyURIs , Function success, Function fail );
+wizAssets.deleteFile(string URI, Function success, Function fail);
 <br />
-    * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg" , "file://documents/settings/img/cards/card002.jpg " .. ] <br />
-    * if you do specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
+    * deletes the file specified by the URI <br />
+    * if the URI does not exist fail will be called with error NotFoundError <br />
+    * if the URI cannot be deleted (i.e. file resides in read-only memory) fail will be called with error NotModificationAllowedError <br />
+<pre><code>
+{
+    wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successCallback, failCallback);
+}
+</code></pre>
+
+wizAssets.deleteFiles(Array manyURIs, Function success, Function fail );
+<br />
+    * delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg", "file://documents/settings/img/cards/card002.jpg " .. ] <br />
+    * if you do not specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
     * the array CAN contain one URI string  <br />
 
 
@@ -110,7 +125,7 @@ wizAssets.getFileURI(String filePathWithFilename, Function success, Function fai
 <pre><code>
 {
 
-    wizAssets.getFileURI("img/ui/logo.jpg" , function(e){ alert("success "+e) } , function(e){ alert("fail "+e) } ); 
+    wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback );
 
 }
 </code></pre>
