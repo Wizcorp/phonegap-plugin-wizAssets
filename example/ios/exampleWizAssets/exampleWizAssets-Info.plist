@@ -57,7 +57,7 @@
 	<key>CFBundleIconFile</key>
 	<string>icon.png</string>
 	<key>CFBundleIdentifier</key>
-	<string>jp.Wizcorp.exampleWizAssets</string>
+	<string>jp.wizcorp.exampleWizAssets</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
