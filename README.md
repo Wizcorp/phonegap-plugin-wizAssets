@@ -3,12 +3,13 @@
 # PLUGIN: 
 
 phonegap-plugin-wizAssets<br />
-version : 1.9<br />
-last update : 06/11/2012<br />
+version : 2.3<br />
+last update : 23/01/2013<br />
 
 
 # CHANGELOG: 
 <br />
+- Updated for Cordova 2.3
 - Updated for Cordova 1.9
 - Changed deleteFile error handling.
 - Removed unimplemented plugin methods.
