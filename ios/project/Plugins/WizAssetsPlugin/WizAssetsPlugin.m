@@ -20,18 +20,15 @@
  *
  */
 
-- (void)backgroundDownload:(NSArray*)arguments { 
+- (void)backgroundDownload:(CDVInvokedUrlCommand*)command { 
 
     // Create a pool  
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];  
     
-    // callback
-    NSString *callbackId = [arguments objectAtIndex:0];
-    
     // url
-    NSString *urlString = [arguments objectAtIndex:1];
+    NSString *urlString = [command.arguments objectAtIndex:0];
     // dir store path and name
-    NSString *savePath = [arguments objectAtIndex:2];
+    NSString *savePath = [command.arguments objectAtIndex:1];
     
     
     
@@ -99,7 +96,7 @@
         returnString = @"error - no urlString";
     }
 
-    NSArray* callbackData = [[NSArray alloc] initWithObjects:callbackId, returnString, nil];
+    NSArray* callbackData = [[NSArray alloc] initWithObjects:command.callbackId, returnString, nil];
     
     
     // download complete pass back confirmation to JS 
@@ -146,16 +143,15 @@
 /*
  * downloadFile - download from an HTTP to app folder
  */
-- (void)downloadFile:(NSArray*)arguments withDict:(NSDictionary*)options
+- (void)downloadFile:(CDVInvokedUrlCommand*)command
 {
     WizLog(@"[WizAssetsPlugin] ******* downloadFile-> " );
-    NSString *callbackId = [arguments objectAtIndex:0];
     
-    int count = [arguments count];
-	if(count > 1) {
+    int count = [command.arguments count];
+	if(count > 0) {
               
         // start in background, pass though strings
-        [self performSelectorInBackground:@selector(backgroundDownload:) withObject:arguments];
+        [self performSelectorInBackground:@selector(backgroundDownload:) withObject:command];
         
     } else {
         
@@ -166,7 +162,7 @@
 
         returnString = @"noParam";
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:returnString];
-        [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
+        [self writeJavascript: [pluginResult toErrorCallbackString:command.callbackId]];
         return;
     }
     
@@ -181,7 +177,7 @@
 /*
  * purgeEmptyDirectories - purge that which is most unclean
  */
-- (void)purgeEmptyDirectories:(NSArray*)arguments withDict:(NSDictionary*)options
+- (void)purgeEmptyDirectories:(CDVInvokedUrlCommand*)command
 {
     
     
@@ -250,12 +246,11 @@
 /*
  * getFileURI - return a URI to the requested resource
  */
-- (void)getFileURI:(NSArray*)arguments withDict:(NSDictionary*)options
+- (void)getFileURI:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult;
     
-    NSString *callbackId = [arguments objectAtIndex:0];
-    NSString *findFile = [arguments objectAtIndex:1];
+    NSString *findFile = [command.arguments objectAtIndex:0];
     NSString *returnURI = @"";
     
     
@@ -305,7 +300,7 @@
     
     [fileStruct release];
     [fileTypeStruct release];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+    [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
 }
 
 
@@ -313,13 +308,11 @@
 /*
  * getFileURIs - return all resources in app folder
  */
-- (void)getFileURIs:(NSArray*)arguments withDict:(NSDictionary*)options
+- (void)getFileURIs:(CDVInvokedUrlCommand*)command
 {
     WizLog(@"[WizAssetsPlugin] ******* getfileURIs-> " );
     // [self.appDelegate updateLoaderLabel:@"Checking for updates..."];
     
-    
-    NSString *callbackId = [arguments objectAtIndex:0];
     
     CDVPluginResult* pluginResult;
 
@@ -354,7 +347,7 @@
     
     
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+    [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
     
     [assetMap release];
     
@@ -365,15 +358,14 @@
 /*
  * deleteFile - delete all resources specified in string from app folder
  */
-- (void)deleteFile:(NSArray*)arguments withDict:(NSDictionary*)options
+- (void)deleteFile:(CDVInvokedUrlCommand*)command
 {
     NSFileManager *filemgr;
     filemgr =[NSFileManager defaultManager];
     
     CDVPluginResult* pluginResult;
     
-    NSString *callbackId = [arguments objectAtIndex:0];
-    NSString *filePath = [arguments objectAtIndex:1];
+    NSString *filePath = [command.arguments objectAtIndex:0];
     // example filePath -
     // file://localhost/Users/WizardBookPro/Library/Application%20Support/iPhone%20Simulator/4.3.2/Applications/AD92CAB6-C364-4536-A4F5-E8333CB9F054/Documents/ZombieBoss/img/ui/logo-v1-g.jpg
     
@@ -392,25 +384,25 @@
                 // success delete
                 WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", filePath);
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-                [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+                [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
                 
             } else {
                 // cannot delete
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"NotFoundError"];
-                [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
+                [self writeJavascript: [pluginResult toErrorCallbackString:command.callbackId]];
             }
         } else {
             // cannot delete file in the bundle
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                              messageAsString:@"NoModificationAllowedError"];
-            [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
+            [self writeJavascript: [pluginResult toErrorCallbackString:command.callbackId]];
         }
         
         
     } else {
         // successfully deleted nothing
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+        [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
     }
 }
 
@@ -420,17 +412,14 @@
 /*
  * deleteFiles - delete all resources specified in array from app folder
  */
-- (void)deleteFiles:(NSArray*)arguments withDict:(NSDictionary*)options
+- (void)deleteFiles:(CDVInvokedUrlCommand*)command
 {
     NSFileManager *filemgr;
     filemgr =[NSFileManager defaultManager];
     
     CDVPluginResult* pluginResult;
     
-    NSString *callbackId = [arguments objectAtIndex:0];
-    
-
-    NSMutableArray *fileArray = [[NSMutableArray alloc] initWithArray:arguments copyItems:YES];
+    NSMutableArray *fileArray = [[NSMutableArray alloc] initWithArray:command.arguments copyItems:YES];
     // example filePath[] -
     // [file://localhost/Users/WizardBookPro/Library/Application%20Support/iPhone%20Simulator/4.3.2/Applications/AD92CAB6-C364-4536-A4F5-E8333CB9F054/Documents/ZombieBoss/img/ui/logo-v1-g.jpg, file://localhost/Users/WizardBookPro/Library/Application%20Support/iPhone%20Simulator/4.3.2/Applications/AD92CAB6-C364-4536-A4F5-E8333CB9F054/Documents/ZombieBoss/img/ui/logo2-v1-g.jpg ]
     
@@ -469,7 +458,7 @@
     }
     
     [fileArray release];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+    [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
     
 }
 

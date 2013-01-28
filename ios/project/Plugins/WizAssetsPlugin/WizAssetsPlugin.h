@@ -9,12 +9,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#ifdef CORDOVA_FRAMEWORK
 #import <Cordova/CDVPlugin.h>
-#else
-#import "CDVPlugin.h"
-#endif
-
 
 @interface WizAssetsPlugin : CDVPlugin <UIWebViewDelegate> {
     
@@ -25,14 +20,14 @@
 /* 
  *  WizAssetsPlugin methods
  */
-- (void)downloadFile:(NSArray*)arguments withDict:(NSDictionary*)options;
-- (void)getFileURI:(NSArray*)arguments withDict:(NSDictionary*)options;
-- (void)getFileURIs:(NSArray*)arguments withDict:(NSDictionary*)options;
-- (void)deleteFile:(NSArray*)arguments withDict:(NSDictionary*)options;
-- (void)deleteFiles:(NSArray*)arguments withDict:(NSDictionary*)options;
-// - (void)purgeEmptyDirectories:(NSArray*)arguments withDict:(NSDictionary*)options();
+- (void)downloadFile:(CDVInvokedUrlCommand*)command;
+- (void)getFileURI:(CDVInvokedUrlCommand*)command;
+- (void)getFileURIs:(CDVInvokedUrlCommand*)command;
+- (void)deleteFile:(CDVInvokedUrlCommand*)command;
+- (void)deleteFiles:(CDVInvokedUrlCommand*)command;
+// - (void)purgeEmptyDirectories:(CDVInvokedUrlCommand*)command;
 
-- (void)backgroundDownload:(NSArray*)arguments;
+- (void)backgroundDownload:(CDVInvokedUrlCommand*)command;
 
 
 
