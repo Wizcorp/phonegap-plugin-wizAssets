@@ -131,8 +131,8 @@ wizAssets.getFileURIs(Function success, Function fail);
 ```
 {
 
-    img/ui/loader.gif  : "/sdcard/<appname>/img/ui/loading.gif", 
-    img/cards/card001.jpg : "file://documents/settings/img/cards/card001.jpg" 
+    "img/ui/loader.gif"  : "/sdcard/<appname>/img/ui/loading.gif", 
+    "img/cards/card001.jpg" : "file://documents/settings/img/cards/card001.jpg" 
 
 } 
 ```
