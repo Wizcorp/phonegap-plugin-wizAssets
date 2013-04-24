@@ -4,3 +4,6 @@ example/ios/exampleWizAssets.xcodeproj/xcuserdata/*
 example/ios/exampleWizAssets.xcodeproj/project.xcworkspace/*
 example/android/bin/*
 example/android/gen/*
+*.apk
+*.ap_
+local.properties
