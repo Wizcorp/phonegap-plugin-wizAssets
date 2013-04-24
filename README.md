@@ -39,8 +39,6 @@ project
 	-project.xcodeproj
 ```
 
-
-
 1 ) Arrange files to structure seen above.
 
 2 ) Add to cordova.plist in the plugins array;<br />
@@ -50,18 +48,12 @@ Value : WizAssetsPlugin<br />
 
 3 ) Add \<script\> tag to your index.html
 
-``` <script type="text/javascript" charset="utf-8" src="phonegap/plugin/wizAssets/wizAssets.js"></script>
-```
+```<script type="text/javascript" charset="utf-8" src="phonegap/plugin/wizAssets/wizAssets.js"></script>```
 
 ^ assuming your index.html is setup like tree above
 
 
 4 ) Follow example code below...
-
-
-
-
-
 
 ### Install (Android):
 
@@ -87,8 +79,7 @@ project
 1 ) Arrange source files to structure seen above.
 
 2 ) Add to res/xml/config.xml the following line;
-```
-<plugin name="WizAssetsPlugin" value="jp.wizcorp.phonegap.plugin.WizAssets.WizAssetsPlugin"/>```
+```<plugin name="WizAssetsPlugin" value="jp.wizcorp.phonegap.plugin.WizAssets.WizAssetsPlugin"/>```
 
 3 ) Add \<script\> tag to your index.html
 ```<script type="text/javascript" charset="utf-8" src="phonegap/plugin/wizAssets/wizAssets.js"></script>```
