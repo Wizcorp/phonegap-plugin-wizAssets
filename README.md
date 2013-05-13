@@ -2,7 +2,7 @@
 
 ## phonegap-plugin-wizAssets 
 
-cordova version : 2.4<br />
+cordova version : 2.5<br />
 last update : 13/05/2013<br />
 
 ### Description :
@@ -11,6 +11,7 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 
 ### Changelog: 
 
+- Updated for Cordova 2.5
 - Updated for Cordova 2.4
 - Updated for Cordova 2.3
 - Changed deleteFile error handling.
@@ -64,7 +65,7 @@ Project tree<br />
 project
 	/ assets
 		/ www
-			-cordova-2.4.0.js
+			-cordova-2.5.0.js
 			-index.html
 			/ assets [store your app assets here]
 			/ phonegap
