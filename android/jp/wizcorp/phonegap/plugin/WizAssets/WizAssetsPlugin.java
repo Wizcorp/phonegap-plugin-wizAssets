@@ -245,22 +245,21 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 is.close();
                 result = "file://" + file.getAbsolutePath();
 
+                this.callbackContext.success(result);
+
+                // Tell Asset Manager to register this download to asset database
+                wizAssetMan.downloadedAsset(this.dirName + this.fileName, file.getAbsolutePath());
+
             } catch (MalformedURLException e) {
                 Log.e("WizAssetsPlugin", "Bad url : ", e);
-                // Ignore error
                 result = "file:///android_asset/" + this.dirName + "/" + this.fileName;
+                this.callbackContext.error("notFoundError");
             } catch (Exception e) {
                 Log.e("WizAssetsPlugin", "Error : " + e);
-                // Ignore error
+                e.printStackTrace();
                 result = "file:///android_asset/" + this.dirName + "/" + this.fileName;
-
+                this.callbackContext.error("unknownError");
             }
-
-            // Tell Asset Manager to register this download to asset database
-            wizAssetMan.downloadedAsset(this.dirName + this.fileName, file.getAbsolutePath());
-
-            this.callbackContext.success(result);
-
             return null;
         }
     }
