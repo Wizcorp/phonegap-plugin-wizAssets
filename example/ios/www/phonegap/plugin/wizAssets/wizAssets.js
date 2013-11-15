@@ -2,9 +2,9 @@ cordova.define("jp.wizcorp.phonegap.plugin.wizAssetsPlugin", function(require, e
 	/* Download and show, PhoneGap Example
 	 *
 	 * @author Ally Ogilvie
-	 * @copyright Wizcorp Inc. [ Incorporated Wizards ] 2013
+	 * @copyright WizCorp Inc. [ Incorporated Wizards ] 2011
 	 * @file - wizAssets.js
-	 * @about - JavaScript download and delete assets for PhoneGap
+	 * @about - JavaScript download and update asset example for PhoneGap
 	 *
 	 *
 	 */

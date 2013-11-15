@@ -8,6 +8,7 @@
  *
  */
 
+var exec = require("cordova/exec");
 
 var wizAssets = { 
     
@@ -54,3 +55,4 @@ var wizAssets = {
     
     
 };
+module.exports = wizAssets;
