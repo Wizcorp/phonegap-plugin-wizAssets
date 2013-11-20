@@ -51,6 +51,7 @@
 			</feature>
 	    </config-file>
 	    
+	    <asset src="www/phonegap/plugin/wizAssets/assets.db" target="phonegap/plugin/wizAssets/assets.db" />
 
 	    <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
 	            target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
