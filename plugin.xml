@@ -5,61 +5,56 @@
     version="1.0.0">
 
     <name>Wizard Asset Manager Plugin</name>
-    
     <description>This plugin allows you easily download, lookup and delete files.</description>
-    
-    <author>Ally Ogilvie - aogilvie@wizcorp.jp</author>
-    
+    <author>Ally Ogilvie</author>
     <keywords>asset, manager, wizAssets, file, wizcorp, wizard</keywords>
-	
-	<engines>
-	    <engine name="cordova" version=">=3.0.0" />
-	</engines>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
 
     <license>MIT</license>
 
     <js-module src="www/phonegap/plugin/wizAssets/wizAssets.js" name="wizAssetsPlugin" target="phonegap/plugin/wizAssets/wizAssets.js">
         <clobbers target="window.wizAssets" />
     </js-module>
-    
+
     <!-- ios -->
     <platform name="ios">
 
         <config-file target="config.xml" parent="/*">
-        	<feature name="wizAssetsPlugin">
+            <feature name="wizAssetsPlugin">
                 <param name="ios-package" value="WizAssetsPlugin"/>
                 <param name="onload" value="true" />
             </feature>
-        	<plugin name="WizAssetsPlugin" value="WizAssetsPlugin"/>
+            <plugin name="WizAssetsPlugin" value="WizAssetsPlugin"/>
         </config-file>
-               
+
         <!-- Plugin files -->
         <header-file src="ios/project/Plugins/WizAssetsPlugin/WizAssetsPlugin.h" />
         <source-file src="ios/project/Plugins/WizAssetsPlugin/WizAssetsPlugin.m" compiler-flags="-fno-objc-arc" />
-        	
+
         <!-- Logger -->
         <source-file src="ios/project/Plugins/WizAssetsPlugin/WizDebugLog.h" compiler-flags="-fno-objc-arc" />
 
     </platform>
-    
+
     <!-- android -->
     <platform name="android">
-    
-		<config-file target="res/xml/config.xml" parent="/*">
-			<feature name="WizAssetsPlugin" >
-				<param name="android-package" value="jp.wizcorp.phonegap.plugin.WizAssets.WizAssetsPlugin"/>
-			</feature>
-	    </config-file>
-	    
-	    <asset src="www/phonegap/plugin/wizAssets/assets.db" target="phonegap/plugin/wizAssets/assets.db" />
 
-	    <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
-	            target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
-	    <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetManager.java" 
-	            target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="WizAssetsPlugin" >
+                <param name="android-package" value="jp.wizcorp.phonegap.plugin.WizAssets.WizAssetsPlugin"/>
+            </feature>
+        </config-file>
+
+        <asset src="www/phonegap/plugin/wizAssets/assets.db" target="phonegap/plugin/wizAssets/assets.db" />
+
+        <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
+                target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
+        <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetManager.java" 
+                target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
 
     </platform>
-    
-    <license>MIT</license>
 
 </plugin>
