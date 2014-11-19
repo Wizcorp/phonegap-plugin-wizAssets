@@ -5,10 +5,10 @@
  *  \  /\  /| |/ / (_| | | | (_| | /  _  \__ \__ \  __/ |_  / /\/\ \ (_| | | | | (_| | (_| |  __/ |    / ___/| | |_| | (_| | | | | |
  *   \/  \/ |_/___\__,_|_|  \__,_| \_/ \_/___/___/\___|\__| \/    \/\__,_|_| |_|\__,_|\__, |\___|_|    \/    |_|\__,_|\__, |_|_| |_|
  *                                                                                    |___/                           |___/        
- * @author 	Ally Ogilvie  
- * @copyright Wizcorp Inc. [ Incorporated Wizards ] 2012
- * @file	- wizAssetManagerPlugin.java
- * @about	- Handle JavaScript API calls from PhoneGap to WizAssetsPlugin
+ * @author  Ally Ogilvie  
+ * @copyright Wizcorp Inc. [ Incorporated Wizards ] 2014
+ * @file    - wizAssetManagerPlugin.java
+ * @about   - Handle JavaScript API calls from PhoneGap to WizAssetsPlugin
 */
 
 package jp.wizcorp.phonegap.plugin.WizAssets;
@@ -163,7 +163,6 @@ public class WizAssetsPlugin extends CordovaPlugin {
             callbackContext.success();
             return true;
         }
-
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
@@ -244,10 +243,9 @@ public class WizAssetsPlugin extends CordovaPlugin {
                     BufferedHttpEntity bufHttpEntity = new BufferedHttpEntity(entity);
                     is = bufHttpEntity.getContent();
                 }
+
                 byte[] buffer = new byte[1024];
-
                 int len1 = 0;
-
                 FileOutputStream fos = new FileOutputStream(file);
 
                 while ( (len1 = is.read(buffer)) > 0 ) {
