@@ -17,8 +17,9 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
-
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.util.Base64;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
@@ -27,10 +28,7 @@ import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.content.res.Resources;
 import android.util.Log;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -51,28 +49,33 @@ public class WizAssetsPlugin extends CordovaPlugin {
         }
 
         if ("downloadFile".equals(action)) {
-            Log.d(TAG, "[downloadFile] *********** "+args.toString() );
-            try {
-                // Split by "/"
-                String[] splitURL = args.getString(1).split("/");
+            Log.d(TAG, "[downloadFile] *********** " + args.toString() );
 
-                // Last element is name
-                String fileName = splitURL[splitURL.length-1];
+            PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
+            result.setKeepCallback(true);
+            callbackContext.sendPluginResult(result);
 
-                // Build directory
-                String dirName = "";
-                for (int i=0; i<splitURL.length-1; i++) {
-                    dirName = dirName+splitURL[i]+"/";
+            final CallbackContext _callbackContext = callbackContext;
+            final String _url = args.getString(0);
+            final String _storePath = args.getString(1);
+
+            cordova.getActivity().runOnUiThread(new Runnable() {
+                public void run() {
+                    // Split by "/"
+                    String[] splitURL = _storePath.split("/");
+
+                    // Last element is file name
+                    String fileName = splitURL[splitURL.length-1];
+
+                    // Build directory
+                    String dirName = "";
+                    for (int i=0; i<splitURL.length-1; i++) {
+                        dirName = dirName+splitURL[i]+"/";
+                    }
+                    downloadUrl(_url, dirName, fileName, "true", _callbackContext);
                 }
-                PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
-                result.setKeepCallback(true);
-                callbackContext.sendPluginResult(result);
-                downloadUrl(args.getString(0), dirName, fileName, "true", callbackContext);
-                return true;
-            } catch (JSONException e) {
-                callbackContext.error("Param errrors");
-                return true;
-            }
+            });
+            return true;
 
         } else if ("getFileURI".equals(action)) {
 
@@ -154,10 +157,15 @@ public class WizAssetsPlugin extends CordovaPlugin {
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
-    private void downloadUrl(String fileUrl, String dirName, String fileName, String overwrite, CallbackContext callbackContext){
+    @SuppressLint("InlinedApi")
+    private void downloadUrl(String fileUrl, String dirName, String fileName, String overwrite, CallbackContext callbackContext) {
         // Download files to sdcard, or phone if sdcard not exists
         Log.d(TAG, "file URL: " + fileUrl);
-        new asyncDownload(fileUrl, dirName, fileName, overwrite, callbackContext).execute();
+        if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB) {
+            new asyncDownload(fileUrl, dirName, fileName, overwrite, callbackContext).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } else {
+            new asyncDownload(fileUrl, dirName, fileName, overwrite, callbackContext).execute();
+        }
     }
 
     private class asyncDownload extends AsyncTask<File, String , String> {
