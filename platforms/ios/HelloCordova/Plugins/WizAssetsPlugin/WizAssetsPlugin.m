@@ -87,11 +87,11 @@
     if ([returnString rangeOfString:@"error"].location == NSNotFound) {
         // no error
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnString];
-        [self writeJavascript: [pluginResult toSuccessCallbackString:callbackId]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
     } else {
         // found error
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:returnString];
-        [self writeJavascript: [pluginResult toErrorCallbackString:callbackId]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
     }
 }
 
@@ -106,7 +106,7 @@
         [self performSelectorInBackground:@selector(backgroundDownload:) withObject:command];
     } else {
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"noParam"];
-        [self writeJavascript:[pluginResult toErrorCallbackString:command.callbackId]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         return;
     }   
 }
@@ -195,7 +195,7 @@
     
     [fileStruct release];
     [fileTypeStruct release];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 /*
@@ -227,7 +227,7 @@
     [assetMap addEntriesFromDictionary:bundleAssetMap];
 
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     
     [assetMap release];
 }
@@ -249,23 +249,20 @@
                 // Success delete
                 WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", filePath);
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-                [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
             } else {
                 // Cannot delete
                 pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"NotFoundError"];
-                [self writeJavascript: [pluginResult toErrorCallbackString:command.callbackId]];
             }
         } else {
             // Cannot delete file in the bundle
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                              messageAsString:@"NoModificationAllowedError"];
-            [self writeJavascript: [pluginResult toErrorCallbackString:command.callbackId]];
         }
     } else {
         // Successfully deleted nothing
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
     }
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
 /*
@@ -290,7 +287,7 @@
     }
 
     [fileArray release];
-    [self writeJavascript: [pluginResult toSuccessCallbackString:command.callbackId]];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 
 }
 
