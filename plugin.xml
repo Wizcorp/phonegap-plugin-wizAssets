@@ -31,11 +31,11 @@
         </config-file>
 
         <!-- Plugin files -->
-        <header-file src="ios/project/Plugins/WizAssetsPlugin/WizAssetsPlugin.h" />
-        <source-file src="ios/project/Plugins/WizAssetsPlugin/WizAssetsPlugin.m" compiler-flags="-fno-objc-arc" />
+        <header-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizAssetsPlugin.h" />
+        <source-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizAssetsPlugin.m" compiler-flags="-fno-objc-arc" />
 
         <!-- Logger -->
-        <source-file src="ios/project/Plugins/WizAssetsPlugin/WizDebugLog.h" compiler-flags="-fno-objc-arc" />
+        <source-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizDebugLog.h" compiler-flags="-fno-objc-arc" />
 
     </platform>
 
@@ -50,9 +50,9 @@
 
         <asset src="www/phonegap/plugin/wizAssets/assets.db" target="phonegap/plugin/wizAssets/assets.db" />
 
-        <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
+        <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
                 target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
-        <source-file src="android/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetManager.java" 
+        <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetManager.java" 
                 target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
 
     </platform>
