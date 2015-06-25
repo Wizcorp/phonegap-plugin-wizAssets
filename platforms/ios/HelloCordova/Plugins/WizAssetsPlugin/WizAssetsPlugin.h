@@ -12,9 +12,10 @@
 #import <Cordova/CDVPlugin.h>
 
 @interface WizAssetsPlugin : CDVPlugin <UIWebViewDelegate> {
-    int scanCounter;
-    NSMutableArray *storePaths;
+    NSString *_cachePath;
 }
+
+- (void)pluginInitialize;
 
 // Exposed to JavaScript
 - (void)downloadFile:(CDVInvokedUrlCommand *)command;
@@ -22,5 +23,7 @@
 - (void)getFileURIs:(CDVInvokedUrlCommand *)command;
 - (void)deleteFile:(CDVInvokedUrlCommand *)command;
 - (void)deleteFiles:(CDVInvokedUrlCommand *)command;
+
+@property (nonatomic, retain) NSString *cachePath;
 
 @end
