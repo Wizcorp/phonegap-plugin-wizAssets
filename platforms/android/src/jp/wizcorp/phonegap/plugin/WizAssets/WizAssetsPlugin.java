@@ -322,9 +322,10 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
             // Run async download task
             File dir = file.getParentFile();
-            if (dir != null && !dir.exists()) {
-                // Create the directory if not existing
-                dir.mkdirs();
+            if (dir != null && !(dir.mkdirs() || dir.isDirectory())) {
+                Log.e("WizAssetsPlugin", "Error : subdirectory " + dir.getPath() + " could not be created");
+                this.callbackContext.error("subdirectoryCreationError");
+                return null;
             }
 
             Log.d(TAG, "[Downloading] " + file.getAbsolutePath());
