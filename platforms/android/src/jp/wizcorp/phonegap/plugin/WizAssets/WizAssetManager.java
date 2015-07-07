@@ -177,6 +177,15 @@ public class WizAssetManager {
     public void deleteFile(String filePath) {
         try {
             // Delete file
+            database.delete(DATABASE_TABLE_NAME, "filePath= ?", new String[] { filePath });
+        } catch (Exception e) {
+            Log.e(TAG, "Delete file error -- " + e.getMessage(), e);
+        }
+    }
+
+    public void deleteFolder(String filePath) {
+        try {
+            // Delete all entries starting with the file path
             database.delete(DATABASE_TABLE_NAME, "filePath like ?", new String[] { filePath + '%' });
         } catch (Exception e) {
             Log.e(TAG, "Delete file error -- " + e.getMessage(), e);

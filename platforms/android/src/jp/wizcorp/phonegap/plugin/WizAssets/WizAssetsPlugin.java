@@ -70,40 +70,24 @@ public class WizAssetsPlugin extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals(DOWNLOAD_FILE_ACTION)) {
             final String url = args.getString(0);
-            final String fileURL = args.getString(1);
+            final String uri = args.getString(1);
             final CallbackContext _callbackContext = callbackContext;
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
-                    // Split by "/"
-                    String[] splitURL = fileURL.split("/");
-                    // Last element is name
-                    String fileName = splitURL[splitURL.length - 1];
-
-                    String dirName = "";
-                    for (int i=0; i < splitURL.length-1; i++) {
-                        dirName = dirName + splitURL[i] + "/";
-                    }
-                    String uri = dirName + fileName;
+                    String filePathInDB = getAssetFilePathFromUri(uri);
                     String filePath = buildAssetFilePathFromUri(uri);
-                    String asset = getAssetFilePathFromUri(uri);
                     File file = new File(filePath);
-                    if (asset != null && file.exists()) {
-                        Log.d(TAG, "[Is in cache] " + fileURL);
+                    if (filePathInDB != null && file.exists()) {
                         // File is already in cache folder, don't download it
-
-                        // Update the modification date of the file
-                        file.setLastModified(new Date().getTime());
-
+                        Log.d(TAG, "[Is in cache] " + uri);
                         String result = "file://" + file.getAbsolutePath();
-
                         _callbackContext.success(result);
                     } else {
                         // File is not in cache folder, download it
-
                         PluginResult result = new PluginResult(PluginResult.Status.NO_RESULT);
                         result.setKeepCallback(true);
                         _callbackContext.sendPluginResult(result);
-                        downloadUrl(url, dirName, fileName, _callbackContext);
+                        downloadUrl(url, uri, filePath, _callbackContext);
                     }
                 }
             });
@@ -191,45 +175,40 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 filePath = buildAssetFilePathFromUri(filePath);
             }
             File file = new File(filePath);
-            deleteFile(file);
+            boolean isDirectory = file.isDirectory();
+            boolean deleteSucceed = deleteFile(file);
+            if (!deleteSucceed) {
+                throw new IOException(filePath + " could not be deleted.");
+            }
             // Delete from database
-            wizAssetManager.deleteFile(filePath);
+            if (isDirectory) {
+                wizAssetManager.deleteFolder(filePath);
+            } else {
+                wizAssetManager.deleteFile(filePath);
+            }
         }
     }
 
-    private void deleteFile(File file) throws IOException {
-        if(file.isDirectory()) {
-            //directory is empty, then delete it
-            if(file.list().length == 0){
-                file.delete();
-            } else {
-                //list all the directory contents
-                String files[] = file.list();
-
-                for (String temp : files) {
-                    //construct the file structure
-                    File fileDelete = new File(file, temp);
-                    //recursive delete
-                    deleteFile(fileDelete);
-                }
-                //check the directory again, if empty then delete it
-                if(file.list().length == 0) {
-                    file.delete();
-                }
+    private boolean deleteFile(File file) {
+        boolean deleteSucceed = true;
+        if (file.isDirectory()) {
+            String files[] = file.list();
+            for (String temp : files) {
+                File fileDelete = new File(file, temp);
+                deleteSucceed = deleteFile(fileDelete) && deleteSucceed;
             }
-        } else {
-            //if file, then delete it
-            file.delete();
         }
+        deleteSucceed = file.delete() && deleteSucceed;
+        return deleteSucceed;
     }
 
     @SuppressLint("NewApi")
-	private void downloadUrl(String fileUrl, String dirName, String fileName, CallbackContext callbackContext){
+	private void downloadUrl(String fileUrl, String uri, String filePath, CallbackContext callbackContext){
         // Download files to sdcard, or phone if sdcard not exists
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            new AsyncDownload(fileUrl, dirName, fileName, callbackContext).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            new AsyncDownload(fileUrl, uri, filePath, callbackContext).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
-            new AsyncDownload(fileUrl, dirName, fileName, callbackContext).execute();
+            new AsyncDownload(fileUrl, uri, filePath, callbackContext).execute();
         }
     }
 
@@ -323,35 +302,35 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     private class AsyncDownload extends AsyncTask<File, String , String> {
 
-        private String dirName;
-        private String fileName;
-        private String fileUrl;
+        private String url;
+        private String uri;
+        private String filePath;
         private CallbackContext callbackContext;
 
         // Constructor
-        public AsyncDownload(String fileUrl, String dirName, String fileName, CallbackContext callbackContext) {
+        public AsyncDownload(String url, String uri, String filePath, CallbackContext callbackContext) {
             // Assign class vars
-            this.fileName = fileName;
-            this.dirName = dirName;
-            this.fileUrl = fileUrl;
+            this.url = url;
+            this.uri = uri;
+            this.filePath = filePath;
             this.callbackContext = callbackContext;
         }
 
         @Override
         protected String doInBackground(File... params) {
+            File file = new File(this.filePath);
+
             // Run async download task
-            File dir = new File(pathToStorage + this.dirName);
-            if (!dir.exists()) {
+            File dir = file.getParentFile();
+            if (dir != null && !dir.exists()) {
                 // Create the directory if not existing
                 dir.mkdirs();
             }
 
-            String filePath = buildAssetFilePathFromUri(this.dirName + this.fileName);
-            File file = new File(filePath);
             Log.d(TAG, "[Downloading] " + file.getAbsolutePath());
 
             try {
-                URL url = new URL(this.fileUrl);
+                URL url = new URL(this.url);
                 HttpGet httpRequest = null;
                 httpRequest = new HttpGet(url.toURI());
 
@@ -396,10 +375,11 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 is.close();
 
                 // Tell Asset Manager to register this download to asset database
-                Log.d(TAG, "[Downloaded ] " + file.getAbsolutePath());
-                wizAssetManager.downloadedAsset(this.dirName + this.fileName, file.getAbsolutePath());
+                String fileAbsolutePath = file.getAbsolutePath();
+                Log.d(TAG, "[Downloaded ] " + fileAbsolutePath);
+                wizAssetManager.downloadedAsset(this.uri, fileAbsolutePath);
 
-                this.callbackContext.success("file://" + file.getAbsolutePath());
+                this.callbackContext.success("file://" + fileAbsolutePath);
             } catch (MalformedURLException e) {
                 Log.e("WizAssetsPlugin", "Bad url : ", e);
                 this.callbackContext.error("notFoundError");
