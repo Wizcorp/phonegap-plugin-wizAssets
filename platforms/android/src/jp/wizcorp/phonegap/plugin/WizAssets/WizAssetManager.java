@@ -185,8 +185,14 @@ public class WizAssetManager {
 
     public void deleteFolder(String filePath) {
         try {
+            String pathPattern;
+            if (filePath.charAt(filePath.length() - 1) != File.separatorChar) {
+                pathPattern = filePath + File.separatorChar + '%';
+            } else {
+                pathPattern = filePath.concat("%");
+            }
             // Delete all entries starting with the file path
-            database.delete(DATABASE_TABLE_NAME, "filePath like ?", new String[] { filePath + File.separator + '%' });
+            database.delete(DATABASE_TABLE_NAME, "filePath like ?", new String[] { pathPattern });
         } catch (Exception e) {
             Log.e(TAG, "Delete file error -- " + e.getMessage(), e);
         }
