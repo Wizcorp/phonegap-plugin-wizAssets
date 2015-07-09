@@ -24,10 +24,10 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 
 ### downloadFile()
 
-**wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Function success, Function fail);**
+**wizAssets.downloadFile(String URL, String URI, Function success, Function fail);**
 
 - downloads a file to native App directory @ ./ + gameDir+ / +filePathToBeStoredWithFilename <br />
-- A success returns URI string like; file://documents/settings/img/cards/card001.jpg <br />
+- A success returns a file URI string like; file://documents/settings/img/cards/card001.jpg <br />
 - example;
 
 ``` 
@@ -48,17 +48,17 @@ wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successC
 
 ### deleteFiles()
 
-**wizAssets.deleteFiles(Array manyURIs, Function success, Function fail );**
+**wizAssets.deleteFiles(Array URIs, Function success, Function fail );**
 
-- delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg", "file://documents/settings/img/cards/card002.jpg " .. ] <br />
-- if you do not specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
+- delete all URIs in Array like; [ "img/cards/card001.jpg", "img/cards/card002.jpg " .. ] <br />
+- if you do not specify a filename only dir, then all contents of dir will be deleted; img/cards <br />
 - the array CAN contain one URI string
 
 ### getFileURI()
 
-**wizAssets.getFileURI(String filePathWithFilename, Function success, Function fail);**
+**wizAssets.getFileURI(String URI, Function success, Function fail);**
 
-- A success returns URI string like file://documents/settings/img/cards/card001.jpg <br />
+- A success returns a file URI string like file://documents/settings/img/cards/card001.jpg <br />
 - example;
 
 ```
@@ -69,7 +69,7 @@ wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback);
 
 **wizAssets.getFileURIs(Function success, Function fail);**
 
-- A success returns URI hashmap such as
+- A success returns a file URI hashmap such as
 
 ```
 {

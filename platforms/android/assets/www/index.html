@@ -372,36 +372,24 @@
             );
         }
         
-        function deleteFile(path, download_button, delete_button, img) {
+        function deleteFile(uri, download_button, delete_button, img) {
             
-            // Define success callback for getting the URI.
-            function getFileURISuccessCallback(fileUri) {
-                
-                // Define success callback for deleting the URI.
-                function deleteFileSuccessCallback() {
-                    // Hide the image, enable download button, and disable delete button
-                    hideImage(img);
-                    document.getElementById(download_button).disabled = false;
-                    document.getElementById(delete_button).disabled = true;
-                    alert("Delete Success:\n" + path + "\nURI:\n" + fileUri);
-                }
-                
-                // Define error callback for deleting the URI.
-                function deleteFileErrorCallback(error) {
-                    alert("Delete Fail:\n" + error + "\nFile was probably already deleted.");
-                }
-                
-                // Delete the URI (and invoke appropriate callback).
-                window.wizAssets.deleteFile(fileUri, deleteFileSuccessCallback, deleteFileErrorCallback);
+            // Define success callback for deleting the URI.
+            function deleteFileSuccessCallback() {
+                // Hide the image, enable download button, and disable delete button
+                hideImage(img);
+                document.getElementById(download_button).disabled = false;
+                document.getElementById(delete_button).disabled = true;
+                alert("Delete Success:\n" + uri);
             }
 
-            // Define error callback for getting the URI.
-            function getFileURIErrorCallback(error) {
-                alert("Failed to get file URI error: " + error);
+            // Define error callback for deleting the URI.
+            function deleteFileErrorCallback(error) {
+                alert("Delete Fail:\n" + error + "\nFile was probably already deleted.");
             }
             
-            // Get the URI (and invoke appropriate callback).
-            window.wizAssets.getFileURI(path, getFileURISuccessCallback, getFileURIErrorCallback);
+            // Delete the URI (and invoke appropriate callback).
+            window.wizAssets.deleteFile(uri, deleteFileSuccessCallback, deleteFileErrorCallback);
         }
 
         function getFileURI(path) {
@@ -459,11 +447,8 @@
                 }
 
                 // Delete the URIs (and invoke appropriate callback).
-                alert( "Deleting " + Object.keys(fileUriMap).length + " files" );
-                var files = [];
-                for ( var key in fileUriMap) {
-                    files.push( fileUriMap[key] );
-                }
+                var files = Object.keys(fileUriMap);
+                alert("Deleting " + files.length + " files");
                 window.wizAssets.deleteFiles(files, deleteFilesSuccessCallback, deleteFilesErrorCallback);
             }
 
