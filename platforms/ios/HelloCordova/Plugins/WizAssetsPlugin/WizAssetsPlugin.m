@@ -8,24 +8,38 @@
 #import "WizAssetsPlugin.h"
 #import "WizDebugLog.h"
 
-@implementation WizAssetsPlugin 
+NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 
-- (void)backgroundDownload:(CDVInvokedUrlCommand *)command { 
+@implementation WizAssetsPlugin
 
-    // Create a pool  
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];  
+@synthesize cachePath = _cachePath;
+
+- (void)pluginInitialize {
+    [super pluginInitialize];
+
+    NSArray  *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    NSString *gameDir = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+
+    self.cachePath = [documentsDirectory stringByAppendingPathComponent:gameDir];
+}
+
+- (void)dealloc {
+    [_cachePath release];
+
+    [super dealloc];
+}
+
+- (void)backgroundDownload:(NSDictionary *)args {
+    // Create a pool
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+    CDVInvokedUrlCommand *command = [args objectForKey:@"command"];
+    NSString *filePath = [args objectForKey:@"filePath"];
+    NSString *fullDir = [filePath stringByDeletingLastPathComponent];
+
     // url
     NSString *urlString = [command.arguments objectAtIndex:0];
-    // dir store path and name
-    NSString *savePath = [command.arguments objectAtIndex:1];
-    // split storePath
-    NSMutableArray *pathSpliter = [[NSMutableArray alloc] initWithArray:[savePath componentsSeparatedByString:@"/"] copyItems:YES];
-    NSString *fileName = [pathSpliter lastObject];
-    // remove last object (filename)
-    [pathSpliter removeLastObject];
-    // join all dir(s)
-    NSString *storePath = [pathSpliter componentsJoinedByString:@"/"];
-    [pathSpliter release];
     // holds our return data
     NSString *returnString;
 
@@ -37,18 +51,21 @@
 
         WizLog(@"downloading ---------------- >%@", url);
 
-        NSData *urlData = [NSData dataWithContentsOfURL:url];
+        NSError *error = nil;
+        NSData *urlData = [NSData dataWithContentsOfURL:url options:NSDataReadingUncached error:&error];
 
-        if (urlData) {
-            // path to library caches
-            NSArray  *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);          
-            NSString *documentsDirectory = [paths objectAtIndex:0]; 
-            NSString *gameDir = [[[NSBundle mainBundle] infoDictionary]   objectForKey:@"CFBundleName"];
-            NSString *fullDir = [NSString stringWithFormat:@"%@/%@/%@", documentsDirectory, gameDir, storePath];
-            NSString *filePath = [fullDir stringByAppendingPathComponent:fileName];
+        if (error) {
+            returnString = [NSString stringWithFormat:@"error - %@", error];
+        } else if (urlData) {
+            // Check if we didn't received a 401
+            // TODO: We might want to find another solution to check for this kind of error, and check other possible errors
+            NSString *dataContent = [[NSString alloc] initWithBytes:[urlData bytes] length:12 encoding:NSUTF8StringEncoding];
+            bool urlUnauthorized = [dataContent isEqualToString:@"Unauthorized"];
+            [dataContent release];
 
-            if ([filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: NULL] == YES) {
-
+            if (urlUnauthorized) {
+                returnString = @"error - url unauthorized";
+            } else if ([filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: NULL] == YES) {
                 // Success to create directory download data to temp and move to library/cache when complete
                 [urlData writeToFile:filePath atomically:YES];
                 returnString = filePath;
@@ -59,18 +76,18 @@
         } else {
             WizLog(@"ERROR: URL no exist");
             returnString = @"error - bad url";
-        }        
+        }
     } else {
         returnString = @"error - no urlString";
     }
 
     NSArray *callbackData = [[NSArray alloc] initWithObjects:command.callbackId, returnString, nil];
-    // Download complete pass back confirmation to JS 
+    // Download complete pass back confirmation to JS
     [self performSelectorOnMainThread:@selector(completeDownload:) withObject:callbackData waitUntilDone:YES];
     [callbackData release];
 
     // clean up
-    [pool release]; 
+    [pool release];
 }
 
 /*
@@ -80,7 +97,11 @@
     // Faked the return string for now
     NSString *callbackId = [callbackdata objectAtIndex:0];
     NSString *returnString = [callbackdata objectAtIndex:1];
+    [self sendCallback:callbackId returnString:returnString];
+}
 
+
+- (void)sendCallback:(NSString *)callbackId returnString:(NSString *)returnString {
     WizLog(@"Path: %@", returnString);
     WizLog(@"callbackId ----------> : %@", callbackId);
 
@@ -100,15 +121,30 @@
  */
 - (void)downloadFile:(CDVInvokedUrlCommand *)command {
     WizLog(@"[WizAssetsPlugin] ******* downloadFile-> " );
-    int count = [command.arguments count];
-    if (count > 0) {
-        // start in background, pass though strings
-        [self performSelectorInBackground:@selector(backgroundDownload:) withObject:command];
-    } else {
+
+    NSUInteger count = [command.arguments count];
+    if (count == 0) {
         CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"noParam"];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
         return;
-    }   
+    }
+
+    // dir store path and name
+    NSString *uri = [command.arguments objectAtIndex:1];
+    NSString *filePath = [self buildAssetFilePathFromUri:uri];
+
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    if ([fileManager fileExistsAtPath:filePath] == YES) {
+        // download complete pass back confirmation to JS
+        [self sendCallback:command.callbackId returnString:filePath];
+        return;
+    }
+
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+                          command, @"command",
+                          filePath, @"filePath",
+                          nil];
+    [self performSelectorInBackground:@selector(backgroundDownload:) withObject:args];
 }
 
 - (void)scanDir:(NSString *)basePath relPath:(NSString *)relPath assetMap:(NSMutableDictionary *)assetMap {
@@ -160,7 +196,7 @@
 
     // Example: bob.mp3
     NSString *fileName = [fileStruct lastObject];
-    
+
     [fileStruct removeLastObject];
 
     // Example img/ui
@@ -169,8 +205,8 @@
     // Cut out suffix from file name, example: [0]bob, [1]mp3,
     NSMutableArray *fileTypeStruct = [[NSMutableArray alloc] initWithArray:[fileName componentsSeparatedByString:@"."]];
 
-    if ([[NSBundle mainBundle] pathForResource:[fileTypeStruct objectAtIndex:0] 
-                                        ofType:[fileTypeStruct objectAtIndex:1] 
+    if ([[NSBundle mainBundle] pathForResource:[fileTypeStruct objectAtIndex:0]
+                                        ofType:[fileTypeStruct objectAtIndex:1]
                                    inDirectory:[@"www" stringByAppendingFormat:@"/assets/%@", findFilePath]]) {
         // Check local path to bundle resources
         NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
@@ -181,18 +217,15 @@
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
     } else {
         // Check in path to app library/caches
-        NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-        NSString *gamePath = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
-        NSString *searchPath = [documentsPath stringByAppendingFormat:@"/%@", gamePath];
         NSMutableDictionary *resourceMap = [NSMutableDictionary dictionary];
 
-        [self scanDir:searchPath relPath:@"" assetMap:resourceMap];
+        [self scanDir:self.cachePath relPath:@"" assetMap:resourceMap];
 
         // Return URI to storage folder
         returnURI = [resourceMap objectForKey:findFile];
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
     }
-    
+
     [fileStruct release];
     [fileTypeStruct release];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -214,21 +247,16 @@
     NSMutableDictionary *bundleAssetMap = [NSMutableDictionary dictionary];
     [self scanDir:bundleSearchPath relPath:@"" assetMap:bundleAssetMap];
 
-    // Path to app library caches
-    NSString *documentsPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-    NSString *gamePath = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
-    NSString *searchPath = [documentsPath stringByAppendingFormat:@"/%@", gamePath];
-
     // Scan downloaded assets
     NSMutableDictionary *docAssetMap = [NSMutableDictionary dictionary];
-    [self scanDir:searchPath relPath:@"" assetMap:docAssetMap];
+    [self scanDir:self.cachePath relPath:@"" assetMap:docAssetMap];
 
     NSMutableDictionary *assetMap = [docAssetMap mutableCopy];
     [assetMap addEntriesFromDictionary:bundleAssetMap];
 
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    
+
     [assetMap release];
 }
 
@@ -236,32 +264,15 @@
  * deleteFile - delete all resources specified in string from app folder
  */
 - (void)deleteFile:(CDVInvokedUrlCommand *)command {
-    NSFileManager *filemgr = [NSFileManager defaultManager];
     CDVPluginResult *pluginResult;
     NSString *filePath = [command.arguments objectAtIndex:0];
 
-    // Note: if no files sent here, still success (technically it is not an error as we success to delete nothing)
-    if (filePath) {        
-        // Check if file is in bundle..
-        NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
-        if ([filePath rangeOfString:bundlePath].location == NSNotFound) {
-            if ([filemgr removeItemAtPath:filePath error:nil ]) {
-                // Success delete
-                WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", filePath);
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            } else {
-                // Cannot delete
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"NotFoundError"];
-            }
-        } else {
-            // Cannot delete file in the bundle
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                             messageAsString:@"NoModificationAllowedError"];
-        }
-    } else {
-        // Successfully deleted nothing
+    if ([self deleteAsset:filePath isUri:NO error:nil]) {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    } else {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Deleting file failed."];
     }
+
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -269,26 +280,99 @@
  * deleteFiles - delete all resources specified in array from app folder
  */
 - (void)deleteFiles:(CDVInvokedUrlCommand *)command {
-    NSFileManager *filemgr = [NSFileManager defaultManager];
-    CDVPluginResult *pluginResult;
+    [self deleteAssets:command isUri:NO];
+}
+
+/*
+ * deleteAssets - delete all resources specified in array from app folder
+ */
+- (void)deleteAssets:(CDVInvokedUrlCommand *)command isUri:(BOOL)isUri {
+    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
+                          command, @"command",
+                          [NSNumber numberWithBool:isUri], @"isUri",
+                          nil];
+    [self performSelectorInBackground:@selector(backgroundDelete:) withObject:args];
+}
+
+- (void)backgroundDelete:(NSDictionary *)args {
+    // Create a pool
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
+    CDVInvokedUrlCommand *command = [args objectForKey:@"command"];
+    BOOL isUri = [[args objectForKey:@"isUri"] boolValue];
+
     NSMutableArray *fileArray = [[NSMutableArray alloc] initWithArray:command.arguments copyItems:YES];
 
-    if (fileArray) {
-        // Count array
-        for (int i = 0; i < [fileArray count]; i++) {
-            // Split each URI in array to remove PhoneGap prefix (file://localhost) then delete
-            NSString *singleFile = [fileArray objectAtIndex:i];
-            WizLog(@"[WizAssetsPlugin] ******* deletingFile > %@", singleFile);
-            [filemgr removeItemAtPath:singleFile error:NULL];
+    NSError *error = nil;
+    for (int i=0; i< [fileArray count]; i++) {
+        NSString *filePath = [fileArray objectAtIndex:i];
+        if (![self deleteAsset:filePath isUri:isUri error:nil]) {
+            error = [NSError errorWithDomain:assetsErrorKey code:100 userInfo:nil];
+            break;
         }
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    } else {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"noParam"];
+    }
+    [fileArray release];
+
+    NSArray *callbackData = [[NSArray alloc] initWithObjects:command.callbackId, error, nil];
+
+    // download complete pass back confirmation to JS
+    [self performSelectorOnMainThread:@selector(completeDelete:) withObject:callbackData waitUntilDone:YES];
+
+    [callbackData release];
+
+    // clean up
+    [pool release];
+}
+
+/*
+ * completeDelete - callback after delete
+ */
+- (void)completeDelete:(NSArray *)callbackdata {
+    CDVPluginResult *pluginResult;
+    NSString *callbackId = [callbackdata objectAtIndex:0];
+    NSError *error = nil;
+    if ([callbackdata count] > 1) {
+        error = [callbackdata objectAtIndex:1];
     }
 
-    [fileArray release];
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    if (error) {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Deleting files failed."];
+    } else {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    }
 
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
+}
+
+/*
+ * deleteAsset - delete resource specified in string from app folder
+ */
+- (BOOL)deleteAsset:(NSString *)filePath isUri:(BOOL)isUri error:(NSError **)error {
+    NSFileManager *filemgr = [NSFileManager defaultManager];
+
+    if (filePath && [filePath length] > 0) {
+        // Check if the file is not in the bundle..
+        NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
+        if ([filePath rangeOfString:bundlePath].location == NSNotFound) {
+            if (isUri) {
+                filePath = [self buildAssetFilePathFromUri:filePath];
+            }
+
+            NSError *localError = nil;
+            if ([filemgr fileExistsAtPath:filePath] && ![filemgr removeItemAtPath:filePath error:&localError] && error != NULL) {
+                *error = [NSError errorWithDomain:assetsErrorKey code:200 userInfo:nil];
+                return NO;
+            }
+        } else if (error != NULL) {
+            *error = [NSError errorWithDomain:assetsErrorKey code:200 userInfo:nil];
+            return NO;
+        }
+    }
+    return YES;
+}
+
+- (NSString *)buildAssetFilePathFromUri:(NSString *)uri {
+    return [self.cachePath stringByAppendingPathComponent:uri];
 }
 
 @end
