@@ -24,7 +24,7 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 
 ### downloadFile()
 
-**wizAssets.downloadFile(String URL, String URI, Function success, Function fail);**
+**wizAssets.downloadFile(String remoteURL, String localURI, Function success, Function fail);**
 
 - downloads a file to native App directory @ ./ + gameDir+ / +filePathToBeStoredWithFilename <br />
 - A success returns a file URI string like; file://documents/settings/img/cards/card001.jpg <br />
@@ -36,7 +36,7 @@ wizAssets.downloadFile("http://google.com/logo.jpg", "img/ui/logo.jpg", successC
 
 ###  deleteFile()
 
-**wizAssets.deleteFile(string URI, Function success, Function fail);**
+**wizAssets.deleteFile(string localURI, Function success, Function fail);**
 
 - deletes the file specified by the URI <br />
 - if the URI does not exist fail will be called with error NotFoundError <br />
@@ -48,7 +48,7 @@ wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successC
 
 ### deleteFiles()
 
-**wizAssets.deleteFiles(Array URIs, Function success, Function fail );**
+**wizAssets.deleteFiles(Array localURIs, Function success, Function fail );**
 
 - delete all URIs in Array like; [ "img/cards/card001.jpg", "img/cards/card002.jpg " .. ] <br />
 - if you do not specify a filename only dir, then all contents of dir will be deleted; img/cards <br />
@@ -56,7 +56,7 @@ wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successC
 
 ### getFileURI()
 
-**wizAssets.getFileURI(String URI, Function success, Function fail);**
+**wizAssets.getFileURI(String localURI, Function success, Function fail);**
 
 - A success returns a file URI string like file://documents/settings/img/cards/card001.jpg <br />
 - example;
