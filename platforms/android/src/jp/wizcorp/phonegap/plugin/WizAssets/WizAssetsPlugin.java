@@ -127,16 +127,16 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
             // Delete all files from given array
             Log.d(TAG, "[deleteFiles] *********** ");
-            deleteAssets(args, false, new DeleteAssetsCallback(callbackContext));
+            deleteFiles(args, callbackContext);
 
             return true;
 
         } else if (action.equals(DELETE_FILE_ACTION)) {
 
             Log.d(TAG, "[deleteFile] *********** " + args.getString(0));
-            String filePath = args.getString(0);
+            String uri = args.getString(0);
             try {
-                deleteAsset(filePath, false);
+                deleteAsset(uri);
             } catch (IOException e) {
                 callbackContext.error("Deleting file failed.");
                 return true;
@@ -163,17 +163,15 @@ public class WizAssetsPlugin extends CordovaPlugin {
         return pathToStorage + uri;
     }
 
-    private void deleteAssets(JSONArray files, boolean isUri, DeleteAssetsCallback callback) {
-        AsyncDelete asyncDelete = new AsyncDelete(callback, isUri);
-        asyncDelete.execute(files);
+    private void deleteFiles(JSONArray uris, CallbackContext callbackContext) {
+        DeleteAssetsCallback callback = new DeleteAssetsCallback(callbackContext);
+        AsyncDelete asyncDelete = new AsyncDelete(callback);
+        asyncDelete.execute(uris);
     }
 
-    private void deleteAsset(String filePath, boolean isUri) throws IOException {
-        // If file is in bundle we cannot delete so ignore and protect whole cache folder from being deleted
-        if (filePath != "" && !filePath.contains("www/assets")) {
-            if (isUri) {
-                filePath = buildAssetFilePathFromUri(filePath);
-            }
+    private void deleteAsset(String uri) throws IOException {
+        if (uri != "") {
+            String filePath = buildAssetFilePathFromUri(uri);
             File file = new File(filePath);
             boolean isDirectory = file.isDirectory();
             boolean deleteSucceed = deleteFile(file);
@@ -247,7 +245,6 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     private class AsyncDelete extends AsyncTask<JSONArray, Integer, Integer> {
         private DeleteAssetsCallback callback;
-        private boolean isUri;
 
         private static final int NO_ERROR = 0;
         private static final int JSON_TYPE_ERROR = -1;
@@ -263,9 +260,8 @@ public class WizAssetsPlugin extends CordovaPlugin {
         private static final String CALLBACK_ERROR_MESSAGE = "Call to delete callback failed.";
 
         // Constructor
-        public AsyncDelete(DeleteAssetsCallback callback, boolean isUri) {
+        public AsyncDelete(DeleteAssetsCallback callback) {
             this.callback = callback;
-            this.isUri = isUri;
         }
 
         protected Integer doInBackground(JSONArray... jsonArrays) {
@@ -276,10 +272,10 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
             // We only process one array, no more than one JSON array should be passed
             JSONArray jsonArray = jsonArrays[0];
-            int countFiles = jsonArray.length();
-            for (int i = 0; i < countFiles; i++) {
+            int countUris = jsonArray.length();
+            for (int i = 0; i < countUris; i++) {
                 try {
-                    deleteAsset(jsonArray.getString(i), isUri);
+                    deleteAsset(jsonArray.getString(i));
                 } catch (JSONException e) {
                     return JSON_TYPE_ERROR;
                 } catch (IOException e) {

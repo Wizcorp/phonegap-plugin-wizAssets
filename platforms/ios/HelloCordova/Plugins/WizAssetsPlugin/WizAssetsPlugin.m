@@ -265,9 +265,9 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
  */
 - (void)deleteFile:(CDVInvokedUrlCommand *)command {
     CDVPluginResult *pluginResult;
-    NSString *filePath = [command.arguments objectAtIndex:0];
+    NSString *uri = [command.arguments objectAtIndex:0];
 
-    if ([self deleteAsset:filePath isUri:NO error:nil]) {
+    if ([self deleteAsset:uri error:nil]) {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Deleting file failed."];
@@ -280,38 +280,21 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
  * deleteFiles - delete all resources specified in array from app folder
  */
 - (void)deleteFiles:(CDVInvokedUrlCommand *)command {
-    [self deleteAssets:command isUri:NO];
+    [self performSelectorInBackground:@selector(backgroundDelete:) withObject:command];
 }
 
-/*
- * deleteAssets - delete all resources specified in array from app folder
- */
-- (void)deleteAssets:(CDVInvokedUrlCommand *)command isUri:(BOOL)isUri {
-    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
-                          command, @"command",
-                          [NSNumber numberWithBool:isUri], @"isUri",
-                          nil];
-    [self performSelectorInBackground:@selector(backgroundDelete:) withObject:args];
-}
-
-- (void)backgroundDelete:(NSDictionary *)args {
+- (void)backgroundDelete:(CDVInvokedUrlCommand *)command {
     // Create a pool
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    CDVInvokedUrlCommand *command = [args objectForKey:@"command"];
-    BOOL isUri = [[args objectForKey:@"isUri"] boolValue];
-
-    NSMutableArray *fileArray = [[NSMutableArray alloc] initWithArray:command.arguments copyItems:YES];
+    NSMutableArray *uris = [[NSMutableArray alloc] initWithArray:command.arguments copyItems:YES];
 
     NSError *error = nil;
-    for (int i=0; i< [fileArray count]; i++) {
-        NSString *filePath = [fileArray objectAtIndex:i];
-        if (![self deleteAsset:filePath isUri:isUri error:nil]) {
-            error = [NSError errorWithDomain:assetsErrorKey code:100 userInfo:nil];
-            break;
-        }
+    for (int i=0; i< [uris count]; i++) {
+        NSString *uri = [uris objectAtIndex:i];
+        [self deleteAsset:uri error:&error];
     }
-    [fileArray release];
+    [uris release];
 
     NSArray *callbackData = [[NSArray alloc] initWithObjects:command.callbackId, error, nil];
 
@@ -347,26 +330,28 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 /*
  * deleteAsset - delete resource specified in string from app folder
  */
-- (BOOL)deleteAsset:(NSString *)filePath isUri:(BOOL)isUri error:(NSError **)error {
-    NSFileManager *filemgr = [NSFileManager defaultManager];
+- (BOOL)deleteAsset:(NSString *)uri error:(NSError **)error {
+    NSFileManager *fileManager = [NSFileManager defaultManager];
 
-    if (filePath && [filePath length] > 0) {
-        // Check if the file is not in the bundle..
-        NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
-        if ([filePath rangeOfString:bundlePath].location == NSNotFound) {
-            if (isUri) {
-                filePath = [self buildAssetFilePathFromUri:filePath];
-            }
-
-            NSError *localError = nil;
-            if ([filemgr fileExistsAtPath:filePath] && ![filemgr removeItemAtPath:filePath error:&localError] && error != NULL) {
-                *error = [NSError errorWithDomain:assetsErrorKey code:200 userInfo:nil];
-                return NO;
-            }
-        } else if (error != NULL) {
+    if (!uri || [uri length] == 0) {
+        if (error != nil) {
             *error = [NSError errorWithDomain:assetsErrorKey code:200 userInfo:nil];
-            return NO;
         }
+        return NO;
+    }
+
+    NSError *localError = nil;
+    NSString *filePath = [self buildAssetFilePathFromUri:uri];
+    if (![fileManager removeItemAtPath:filePath error:&localError]) {
+        // File didn't exist in the first place, it's not an error
+        if ([[localError domain] isEqualToString:NSCocoaErrorDomain] && [localError code] == NSFileNoSuchFileError) {
+            return YES;
+        }
+        // File deletion failed, it's an error
+        if (error != nil) {
+            *error = localError;
+        }
+        return NO;
     }
     return YES;
 }

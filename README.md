@@ -5,7 +5,7 @@
 
 # Description
 
-PhoneGap plugin for managing application assets with javascript asset maps. Includes( iOS background threaded) downloadFile, getFileURI, getFileURIs, deleteFile.
+PhoneGap plugin for managing application assets with javascript asset maps. Includes (iOS background threaded) downloadFile, getFileURI, getFileURIs, deleteFile, deleteFiles.
 
 
 ## Install (with Plugman) 
@@ -24,23 +24,23 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 
 ### downloadFile()
 
-**wizAssets.downloadFile(String URL, String filePathToBeStoredWithFilename, Function success, Function fail);**
+**wizAssets.downloadFile(String remoteURL, String assetId, Function success, Function fail);**
 
 - downloads a file to native App directory @ ./ + gameDir+ / +filePathToBeStoredWithFilename <br />
-- A success returns URI string like; file://documents/settings/img/cards/card001.jpg <br />
+- A success returns a local URL string like; file://documents/settings/img/cards/card001.jpg <br />
 - example;
 
 ``` 
 wizAssets.downloadFile("http://google.com/logo.jpg", "img/ui/logo.jpg", successCallback, failCallback);
 ```
 
-###  deleteFile()
+### deleteFile()
 
-**wizAssets.deleteFile(string URI, Function success, Function fail);**
+**wizAssets.deleteFile(string assetId, Function success, Function fail);**
 
-- deletes the file specified by the URI <br />
-- if the URI does not exist fail will be called with error NotFoundError <br />
-- if the URI cannot be deleted (i.e. file resides in read-only memory) fail will be called with error NotModificationAllowedError
+- deletes the file specified by the asset id <br />
+- if the asset id does not exist fail will be called with error NotFoundError <br />
+- if the asset id cannot be deleted (i.e. file resides in read-only memory) fail will be called with error NotModificationAllowedError
 
 ```
 wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successCallback, failCallback);
@@ -48,17 +48,17 @@ wizAssets.deleteFile("file://documents/settings/img/cards/card001.jpg", successC
 
 ### deleteFiles()
 
-**wizAssets.deleteFiles(Array manyURIs, Function success, Function fail );**
+**wizAssets.deleteFiles(Array assetIds, Function success, Function fail );**
 
-- delete all URIs in Array like; [ "file://documents/settings/img/cards/card001.jpg", "file://documents/settings/img/cards/card002.jpg " .. ] <br />
-- if you do not specify a filename only dir, then all contents of dir will be deleted; file://documents/settings/img/cards <br />
-- the array CAN contain one URI string
+- delete files specified by their asset id in Array like; [ "img/cards/card001.jpg", "img/cards/card002.jpg " .. ] <br />
+- if an asset id uses a path format and matches a folder, then the folder content will be deleted; img/cards <br />
+- the array CAN contain one asset id
 
 ### getFileURI()
 
-**wizAssets.getFileURI(String filePathWithFilename, Function success, Function fail);**
+**wizAssets.getFileURI(String assetId, Function success, Function fail);**
 
-- A success returns URI string like file://documents/settings/img/cards/card001.jpg <br />
+- A success returns a local URL string like file://documents/settings/img/cards/card001.jpg <br />
 - example;
 
 ```
@@ -69,7 +69,7 @@ wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback);
 
 **wizAssets.getFileURIs(Function success, Function fail);**
 
-- A success returns URI hashmap such as
+- A success returns a hashmap of asset id matching its local URL such as
 
 ```
 {
