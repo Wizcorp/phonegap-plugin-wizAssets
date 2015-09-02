@@ -196,7 +196,11 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 deleteSucceed = deleteFile(fileDelete) && deleteSucceed;
             }
         }
-        deleteSucceed = file.delete() && deleteSucceed;
+        boolean deleteResult = file.delete();
+        if (!deleteResult) {
+            deleteResult = !file.exists();
+        }
+        deleteSucceed = deleteResult && deleteSucceed;
         return deleteSucceed;
     }
 
