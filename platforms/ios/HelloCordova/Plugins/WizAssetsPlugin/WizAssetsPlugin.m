@@ -70,9 +70,8 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
                 bool isDirectoryCreated = [filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: &error];
 
                 if (!isDirectoryCreated) {
-                    // Directory already exists, it's not an error
                     if ([[error domain] isEqualToString:NSCocoaErrorDomain] && [error code] == NSFileWriteFileExistsError) {
-                        NSLog(@"------- trying to continue after a `directory already created`");
+                        // Directory already exists, it's not an error
                         isDirectoryCreated = true;
                     } else {
                         returnString = [NSString stringWithFormat:@"error - unable to create directory (code: %ld - domain: %@)", [error code], [error domain]];
