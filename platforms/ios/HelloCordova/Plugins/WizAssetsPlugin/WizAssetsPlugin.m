@@ -63,18 +63,18 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
             bool urlUnauthorized = [dataContent isEqualToString:@"Unauthorized"];
             [dataContent release];
 
-            NSError *error = nil;
+            NSError *directoryError = nil;
             if (urlUnauthorized) {
                 returnString = @"error - url unauthorized";
             } else {
-                bool isDirectoryCreated = [filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: &error];
+                bool isDirectoryCreated = [filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: &directoryError];
 
                 if (!isDirectoryCreated) {
-                    if ([[error domain] isEqualToString:NSCocoaErrorDomain] && [error code] == NSFileWriteFileExistsError) {
+                    if ([[directoryError domain] isEqualToString:NSCocoaErrorDomain] && [directoryError code] == NSFileWriteFileExistsError) {
                         // Directory already exists, it's not an error
                         isDirectoryCreated = true;
                     } else {
-                        returnString = [NSString stringWithFormat:@"error - unable to create directory (code: %ld - domain: %@)", [error code], [error domain]];
+                        returnString = [NSString stringWithFormat:@"error - unable to create directory (code: %ld - domain: %@)", [directoryError code], [directoryError domain]];
                     }
                 }
                 if (isDirectoryCreated) {
