@@ -65,13 +65,23 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 
             if (urlUnauthorized) {
                 returnString = @"error - url unauthorized";
-            } else if ([filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: NULL] == YES) {
-                // Success to create directory download data to temp and move to library/cache when complete
-                [urlData writeToFile:filePath atomically:YES];
-                returnString = filePath;
             } else {
-                // Failed to download
-                returnString = @"error - failed download";
+                NSError *directoryError = nil;
+                bool isDirectoryCreated = [filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: &directoryError];
+
+                if (!isDirectoryCreated) {
+                    if ([[directoryError domain] isEqualToString:NSCocoaErrorDomain] && [directoryError code] == NSFileWriteFileExistsError) {
+                        // Directory already exists, it's not an error
+                        isDirectoryCreated = true;
+                    } else {
+                        returnString = [NSString stringWithFormat:@"error - unable to create directory (code: %ld - domain: %@)", [directoryError code], [directoryError domain]];
+                    }
+                }
+                if (isDirectoryCreated) {
+                    // Success to create directory download data to temp and move to library/cache when complete
+                    [urlData writeToFile:filePath atomically:YES];
+                    returnString = filePath;
+                }
             }
         } else {
             WizLog(@"ERROR: URL no exist");
