@@ -11,8 +11,22 @@
 #import <UIKit/UIKit.h>
 #import <Cordova/CDVPlugin.h>
 
+enum CDVWizAssetsError {
+    NO_ERROR = 0,
+    ARGS_MISSING_ERROR = 1,
+    INVALID_URL_ERROR = 2,
+    CONNECTIVITY_ERROR = 3,
+    HTTP_REQUEST_ERROR = 4,
+    HTTP_REQUEST_CONTENT_ERROR = 5,
+    DIRECTORY_CREATION_ERROR = 6,
+    FILE_CREATION_ERROR = 7,
+    JSON_CREATION_ERROR = 8
+};
+typedef int CDVWizAssetsError;
+
 @interface WizAssetsPlugin : CDVPlugin <UIWebViewDelegate> {
     NSString *_cachePath;
+    NSURLSession *_session;
 }
 
 - (void)pluginInitialize;
@@ -25,5 +39,6 @@
 - (void)deleteFiles:(CDVInvokedUrlCommand *)command;
 
 @property (nonatomic, retain) NSString *cachePath;
+@property (nonatomic, retain) NSURLSession *session;
 
 @end
