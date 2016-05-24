@@ -18,6 +18,9 @@
     <js-module src="www/phonegap/plugin/wizAssets/wizAssets.js" name="wizAssetsPlugin" target="phonegap/plugin/wizAssets/wizAssets.js">
         <clobbers target="window.wizAssets" />
     </js-module>
+    <js-module src="www/phonegap/plugin/wizAssets/WizAssetsError.js" name="WizAssetsError" target="phonegap/plugin/wizAssets/WizAssetsError.js">
+        <clobbers target="window.WizAssetsError" />
+    </js-module>
 
     <!-- ios -->
     <platform name="ios">
@@ -32,10 +35,10 @@
 
         <!-- Plugin files -->
         <header-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizAssetsPlugin.h" />
-        <source-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizAssetsPlugin.m" compiler-flags="-fno-objc-arc" />
+        <source-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizAssetsPlugin.m" />
 
         <!-- Logger -->
-        <source-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizDebugLog.h" compiler-flags="-fno-objc-arc" />
+        <source-file src="platforms/ios/HelloCordova/Plugins/WizAssetsPlugin/WizDebugLog.h" />
 
     </platform>
 

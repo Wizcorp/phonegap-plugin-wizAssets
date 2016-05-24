@@ -13,6 +13,7 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 @implementation WizAssetsPlugin
 
 @synthesize cachePath = _cachePath;
+@synthesize session = _session;
 
 - (void)pluginInitialize {
     [super pluginInitialize];
@@ -22,108 +23,11 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
     NSString *gameDir = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
 
     self.cachePath = [documentsDirectory stringByAppendingPathComponent:gameDir];
-}
 
-- (void)dealloc {
-    [_cachePath release];
-
-    [super dealloc];
-}
-
-- (void)backgroundDownload:(NSDictionary *)args {
-    // Create a pool
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-    CDVInvokedUrlCommand *command = [args objectForKey:@"command"];
-    NSString *filePath = [args objectForKey:@"filePath"];
-    NSString *fullDir = [filePath stringByDeletingLastPathComponent];
-
-    // url
-    NSString *urlString = [command.arguments objectAtIndex:0];
-    // holds our return data
-    NSString *returnString;
-
-    if (urlString) {
-
-        NSFileManager *filemgr;
-        filemgr =[NSFileManager defaultManager];
-        NSURL  *url = [NSURL URLWithString:urlString];
-
-        WizLog(@"downloading ---------------- >%@", url);
-
-        NSError *error = nil;
-        NSData *urlData = [NSData dataWithContentsOfURL:url options:NSDataReadingUncached error:&error];
-
-        if (error) {
-            returnString = [NSString stringWithFormat:@"error - %@", error];
-        } else if (urlData) {
-            // Check if we didn't received a 401
-            // TODO: We might want to find another solution to check for this kind of error, and check other possible errors
-            NSString *dataContent = [[NSString alloc] initWithBytes:[urlData bytes] length:12 encoding:NSUTF8StringEncoding];
-            bool urlUnauthorized = [dataContent isEqualToString:@"Unauthorized"];
-            [dataContent release];
-
-            if (urlUnauthorized) {
-                returnString = @"error - url unauthorized";
-            } else {
-                NSError *directoryError = nil;
-                bool isDirectoryCreated = [filemgr createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error: &directoryError];
-
-                if (!isDirectoryCreated) {
-                    if ([[directoryError domain] isEqualToString:NSCocoaErrorDomain] && [directoryError code] == NSFileWriteFileExistsError) {
-                        // Directory already exists, it's not an error
-                        isDirectoryCreated = true;
-                    } else {
-                        returnString = [NSString stringWithFormat:@"error - unable to create directory (code: %ld - domain: %@)", [directoryError code], [directoryError domain]];
-                    }
-                }
-                if (isDirectoryCreated) {
-                    // Success to create directory download data to temp and move to library/cache when complete
-                    [urlData writeToFile:filePath atomically:YES];
-                    returnString = filePath;
-                }
-            }
-        } else {
-            WizLog(@"ERROR: URL no exist");
-            returnString = @"error - bad url";
-        }
-    } else {
-        returnString = @"error - no urlString";
-    }
-
-    NSArray *callbackData = [[NSArray alloc] initWithObjects:command.callbackId, returnString, nil];
-    // Download complete pass back confirmation to JS
-    [self performSelectorOnMainThread:@selector(completeDownload:) withObject:callbackData waitUntilDone:YES];
-    [callbackData release];
-
-    // clean up
-    [pool release];
-}
-
-/*
- * completeDownload - background thread callback to JavaScript
- */
-- (void)completeDownload:(NSArray *)callbackdata {
-    // Faked the return string for now
-    NSString *callbackId = [callbackdata objectAtIndex:0];
-    NSString *returnString = [callbackdata objectAtIndex:1];
-    [self sendCallback:callbackId returnString:returnString];
-}
-
-
-- (void)sendCallback:(NSString *)callbackId returnString:(NSString *)returnString {
-    WizLog(@"Path: %@", returnString);
-    WizLog(@"callbackId ----------> : %@", callbackId);
-
-    if ([returnString rangeOfString:@"error"].location == NSNotFound) {
-        // no error
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnString];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-    } else {
-        // found error
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:returnString];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:callbackId];
-    }
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    configuration.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    configuration.URLCache = nil;
+    self.session = [NSURLSession sessionWithConfiguration:configuration];
 }
 
 /*
@@ -133,9 +37,9 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
     WizLog(@"[WizAssetsPlugin] ******* downloadFile-> " );
 
     NSUInteger count = [command.arguments count];
-    if (count == 0) {
-        CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"noParam"];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    if (count < 2) {
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:ARGS_MISSING_ERROR]];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
     }
 
@@ -146,15 +50,76 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
     NSFileManager *fileManager = [NSFileManager defaultManager];
     if ([fileManager fileExistsAtPath:filePath] == YES) {
         // download complete pass back confirmation to JS
-        [self sendCallback:command.callbackId returnString:filePath];
+        CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
+        [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
         return;
     }
 
-    NSDictionary *args = [NSDictionary dictionaryWithObjectsAndKeys:
-                          command, @"command",
-                          filePath, @"filePath",
-                          nil];
-    [self performSelectorInBackground:@selector(backgroundDownload:) withObject:args];
+    NSString *urlString = [command.arguments objectAtIndex:0];
+    NSURL *URL = [NSURL URLWithString:urlString];
+    NSURLRequest *request = [NSURLRequest requestWithURL:URL];
+
+    NSURLSessionDownloadTask *downloadTask = [self.session downloadTaskWithRequest:request
+                                                            completionHandler:
+                                              ^(NSURL *location, NSURLResponse *response, NSError *error) {
+                                                  CDVPluginResult *result = nil;
+                                                  NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+                                                  NSInteger statusCode = httpResponse.statusCode;
+                                                  if (error) {
+                                                      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:CONNECTIVITY_ERROR message:[error description]]];
+                                                  } else if (statusCode < 200 || statusCode >= 300) {
+                                                      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:HTTP_REQUEST_ERROR status:statusCode]];
+                                                  } else {
+                                                      NSError *ioError = nil;
+                                                      NSString *fullDir = [filePath stringByDeletingLastPathComponent];
+                                                      BOOL isDirectoryCreated = [fileManager createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error:&ioError];
+                                                      if (ioError) {
+                                                          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:DIRECTORY_CREATION_ERROR message:[ioError description]]];
+                                                      } else if (!isDirectoryCreated) {
+                                                          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:DIRECTORY_CREATION_ERROR]];
+                                                      } else {
+                                                          NSURL *filePathURL = [NSURL fileURLWithPath:filePath];
+                                                          BOOL isFileMoved = [fileManager moveItemAtURL:location toURL:filePathURL error:&ioError];
+                                                          if (ioError) {
+                                                              result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:FILE_CREATION_ERROR message:[ioError description]]];
+                                                          } else if (!isFileMoved) {
+                                                              result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:FILE_CREATION_ERROR]];
+                                                          } else {
+                                                              result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
+                                                          }
+                                                      }
+                                                  }
+                                                  dispatch_async(dispatch_get_main_queue(), ^{
+                                                      [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+                                                  });
+    }];
+
+    [downloadTask resume];
+}
+
+- (NSDictionary *)createDownloadFileError:(int)code {
+    return [self createDownloadFileError:code status:-1 message:nil];
+}
+
+- (NSDictionary *)createDownloadFileError:(int)code status:(NSInteger)status {
+    return [self createDownloadFileError:code status:status message:nil];
+}
+
+- (NSDictionary *)createDownloadFileError:(int)code message:(NSString *)message {
+    return [self createDownloadFileError:code status:-1 message:message];
+}
+
+- (NSDictionary *)createDownloadFileError:(int)code status:(NSInteger)status message:(NSString *)message {
+    NSMutableDictionary* error = [NSMutableDictionary dictionaryWithObject:[NSNumber numberWithInt:code] forKey:@"code"];
+    if (status != -1) {
+        [error setObject:[NSNumber numberWithInteger:status] forKey:@"status"];
+    }
+    if (message) {
+        [error setObject:message forKey:@"message"];
+    } else {
+        [error setObject:@"No description" forKey:@"message"];
+    }
+    return error;
 }
 
 - (void)scanDir:(NSString *)basePath relPath:(NSString *)relPath assetMap:(NSMutableDictionary *)assetMap {
@@ -236,8 +201,6 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
     }
 
-    [fileStruct release];
-    [fileTypeStruct release];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
@@ -266,8 +229,6 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-
-    [assetMap release];
 }
 
 /*
@@ -294,27 +255,20 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 }
 
 - (void)backgroundDelete:(CDVInvokedUrlCommand *)command {
-    // Create a pool
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    @autoreleasepool {
+        NSArray *uris = command.arguments;
 
-    NSMutableArray *uris = [[NSMutableArray alloc] initWithArray:command.arguments copyItems:YES];
+        NSError *error = nil;
+        for (int i = 0; i < [uris count]; i++) {
+            NSString *uri = [uris objectAtIndex:i];
+            [self deleteAsset:uri error:&error];
+        }
 
-    NSError *error = nil;
-    for (int i=0; i< [uris count]; i++) {
-        NSString *uri = [uris objectAtIndex:i];
-        [self deleteAsset:uri error:&error];
+        NSArray *callbackData = [[NSArray alloc] initWithObjects:command.callbackId, error, nil];
+
+        // download complete pass back confirmation to JS
+        [self performSelectorOnMainThread:@selector(completeDelete:) withObject:callbackData waitUntilDone:YES];
     }
-    [uris release];
-
-    NSArray *callbackData = [[NSArray alloc] initWithObjects:command.callbackId, error, nil];
-
-    // download complete pass back confirmation to JS
-    [self performSelectorOnMainThread:@selector(completeDelete:) withObject:callbackData waitUntilDone:YES];
-
-    [callbackData release];
-
-    // clean up
-    [pool release];
 }
 
 /*

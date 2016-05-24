@@ -15,8 +15,8 @@ package jp.wizcorp.phonegap.plugin.WizAssets;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 import android.annotation.SuppressLint;
@@ -39,6 +39,8 @@ import android.util.Log;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.entity.BufferedHttpEntity;
@@ -55,7 +57,18 @@ public class WizAssetsPlugin extends CordovaPlugin {
     private static final String DELETE_FILE_ACTION = "deleteFile";
     private static final String DELETE_FILES_ACTION = "deleteFiles";
 
+    private static final int NO_ERROR = 0;
+    private static final int ARGS_MISSING_ERROR = 1;
+    private static final int INVALID_URL_ERROR = 2;
+    private static final int CONNECTIVITY_ERROR = 3;
+    private static final int HTTP_REQUEST_ERROR = 4;
+    private static final int HTTP_REQUEST_CONTENT_ERROR = 5;
+    private static final int DIRECTORY_CREATION_ERROR = 6;
+    private static final int FILE_CREATION_ERROR = 7;
+    private static final int JSON_CREATION_ERROR = 8;
+
     private String pathToStorage;
+    private int blockSize;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -63,7 +76,27 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         final Context applicationContext = cordova.getActivity().getApplicationContext();
         pathToStorage = applicationContext.getCacheDir().getAbsolutePath() + File.separator;
+        setBlockSize();
+
         wizAssetManager = new WizAssetManager(applicationContext);
+    }
+
+    @SuppressWarnings("deprecation")
+    @SuppressLint("NewApi")
+    private void setBlockSize() {
+        android.os.StatFs stat = new android.os.StatFs(pathToStorage);
+        long blockSizeLong;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            blockSizeLong = stat.getBlockSizeLong();
+        } else {
+            blockSizeLong = stat.getBlockSize();
+        }
+        if (blockSizeLong < 1024) {
+            blockSizeLong = 1024;
+        } else if (blockSizeLong > 16384) {
+            blockSizeLong = 16384;
+        }
+        blockSize = (int)blockSizeLong;
     }
 
     @Override
@@ -117,9 +150,8 @@ public class WizAssetsPlugin extends CordovaPlugin {
         } else if (action.equals(GET_FILE_URIS_ACTION)) {
 
             // Return all assets as asset map object
-            Log.d(TAG, "[getFileURIs] *********** >>>>>>> ");
+            Log.d(TAG, "[getFileURIs] returning all assets as map");
             JSONObject assetObject = wizAssetManager.getAllAssets();
-            Log.d(TAG, "[getFileURIs] RETURN *********** >>>>>>> " + assetObject.toString());
             callbackContext.success(assetObject);
             return true;
 
@@ -300,7 +332,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
         }
     }
 
-    private class AsyncDownload extends AsyncTask<File, String , String> {
+    private class AsyncDownload extends AsyncTask<File, Void, Void> {
 
         private String url;
         private String uri;
@@ -317,63 +349,121 @@ public class WizAssetsPlugin extends CordovaPlugin {
         }
 
         @Override
-        protected String doInBackground(File... params) {
-            File file = new File(this.filePath);
-
-            // Run async download task
-            File dir = file.getParentFile();
-            if (dir != null && !(dir.mkdirs() || dir.isDirectory())) {
-                Log.e("WizAssetsPlugin", "Error : subdirectory " + dir.getPath() + " could not be created");
-                this.callbackContext.error("subdirectoryCreationError");
-                return null;
-            }
-
-            Log.d(TAG, "[Downloading] " + file.getAbsolutePath());
-
+        protected Void doInBackground(File... params) {
             try {
-                URL url = new URL(this.url);
-                HttpGet httpRequest = null;
-                httpRequest = new HttpGet(url.toURI());
+                File file = new File(this.filePath);
 
-                HttpClient httpclient = new DefaultHttpClient();
-
-                // Credential check
-                String credentials = url.getUserInfo();
-                if (credentials != null) {
-                    // Add Basic Authentication header
-                    httpRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP));
+                // Run async download task
+                File dir = file.getParentFile();
+                if (dir == null || !(dir.mkdirs() || dir.isDirectory())) {
+                    Log.e("WizAssetsPlugin", "Error : subdirectory could not be created");
+                    this.callbackContext.error(createDownloadFileError(DIRECTORY_CREATION_ERROR));
+                    return null;
                 }
 
-                HttpResponse response = httpclient.execute(httpRequest);
+                Log.d(TAG, "[Downloading] " + file.getAbsolutePath());
+
+                HttpGet httpRequest;
+                try {
+                    URL url = new URL(this.url);
+                    httpRequest = new HttpGet(url.toURI());
+
+                    // Credential check
+                    String credentials = url.getUserInfo();
+                    if (credentials != null) {
+                        // Add Basic Authentication header
+                        httpRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP));
+                    }
+                } catch (MalformedURLException e) {
+                    this.callbackContext.error(createDownloadFileError(INVALID_URL_ERROR));
+                    return null;
+                } catch (URISyntaxException e) {
+                    this.callbackContext.error(createDownloadFileError(INVALID_URL_ERROR));
+                    return null;
+                }
+
+                HttpResponse response;
+                HttpClient httpclient = new DefaultHttpClient();
+                try {
+                    response = httpclient.execute(httpRequest);
+                    if (response == null) {
+                        this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                        return null;
+                    }
+                    StatusLine statusLine = response.getStatusLine();
+                    if (statusLine == null) {
+                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_ERROR, "No status available"));
+                        return null;
+                    }
+                    int statusCode = statusLine.getStatusCode();
+                    if (statusCode < 200 || statusCode > 299) {
+                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_ERROR, statusCode));
+                        return null;
+                    }
+                } catch (ClientProtocolException e) {
+                    this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                    return null;
+                } catch (IOException e) {
+                    this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                    return null;
+                }
+
                 HttpEntity entity = response.getEntity();
 
-                InputStream is;
+                InputStream is = null;
 
-                Header contentHeader = entity.getContentEncoding();
-                if (contentHeader != null) {
-                    if (contentHeader.getValue().contains("gzip")) {
-                        Log.d(TAG, "GGGGGGGGGZIIIIIPPPPPED!");
+                Header encodingHeader = entity.getContentEncoding();
+                try {
+                    String encodingHeaderValue = encodingHeader != null ? encodingHeader.getValue() : null;
+                    if (encodingHeaderValue != null && encodingHeaderValue.contains("gzip")) {
                         is = new GZIPInputStream(entity.getContent());
                     } else {
                         BufferedHttpEntity bufHttpEntity = new BufferedHttpEntity(entity);
                         is = bufHttpEntity.getContent();
                     }
-                } else {
-                    BufferedHttpEntity bufHttpEntity = new BufferedHttpEntity(entity);
-                    is = bufHttpEntity.getContent();
+                    if (is == null) {
+                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_CONTENT_ERROR));
+                        return null;
+                    }
+                } catch (IOException e) {
+                    this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_CONTENT_ERROR));
+                    return null;
                 }
-                byte[] buffer = new byte[1024];
+
+                byte[] buffer = new byte[blockSize];
 
                 int len1 = 0;
 
-                FileOutputStream fos = new FileOutputStream(file);
+                FileOutputStream fos = null;
+                boolean exceptionThrown = false;
+                try {
+                    fos = new FileOutputStream(file);
 
-                while ((len1 = is.read(buffer)) > 0 ) {
-                    fos.write(buffer,0, len1);
+                    while ((len1 = is.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len1);
+                    }
+                } catch (FileNotFoundException e) {
+                    exceptionThrown = true;
+                } catch (IOException e) {
+                    exceptionThrown = true;
+                } finally {
+                    if (fos != null) {
+                        try {
+                            fos.close();
+                        } catch (IOException e) {
+                            exceptionThrown = true;
+                        }
+                    }
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        exceptionThrown = true;
+                    }
                 }
-
-                fos.close();
-                is.close();
+                if (exceptionThrown) {
+                    this.callbackContext.error(createDownloadFileError(FILE_CREATION_ERROR));
+                    return null;
+                }
 
                 // Tell Asset Manager to register this download to asset database
                 String fileAbsolutePath = file.getAbsolutePath();
@@ -381,16 +471,38 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 wizAssetManager.downloadedAsset(this.uri, fileAbsolutePath);
 
                 this.callbackContext.success("file://" + fileAbsolutePath);
-            } catch (MalformedURLException e) {
-                Log.e("WizAssetsPlugin", "Bad url : ", e);
-                this.callbackContext.error("notFoundError");
-            } catch (Exception e) {
-                Log.e("WizAssetsPlugin", "Error : " + e);
-                e.printStackTrace();
-                this.callbackContext.error("unknownError");
+            } catch (JSONException e) {
+                this.callbackContext.error(JSON_CREATION_ERROR);
+                return null;
             }
+
             return null;
         }
     }
-}
 
+    JSONObject createDownloadFileError(int code) throws JSONException {
+		return createDownloadFileError(code, -1, null);
+    }
+
+    JSONObject createDownloadFileError(int code, int status) throws JSONException {
+		return createDownloadFileError(code, status, null);
+    }
+
+    JSONObject createDownloadFileError(int code, String message) throws JSONException {
+		return createDownloadFileError(code, -1, message);
+    }
+
+    JSONObject createDownloadFileError(int code, int status, String message) throws JSONException {
+		JSONObject errorObject = new JSONObject();
+		errorObject.put("code", code);
+		if (status != -1) {
+			errorObject.put("status", status);
+		}
+		if (message != null) {
+			errorObject.put("message", message);
+		} else {
+			errorObject.put("message", "No description");
+		}
+		return errorObject;
+    }
+}

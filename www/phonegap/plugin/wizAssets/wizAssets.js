@@ -12,7 +12,13 @@ var wizAssets = {
     downloadFile: function (url, filePath, s, f) {
         window.setTimeout(
             function () {
-                exec(s, f, "WizAssetsPlugin", "downloadFile", [url, filePath]);
+                function failure(error) {
+                    if (error === WizAssetsError.JSON_CREATION_ERROR) {
+                        error = new WizAssetsError(error);
+                    }
+                    return f(error);
+                }
+                exec(s, failure, "WizAssetsPlugin", "downloadFile", [url, filePath]);
             }, 0);
     },
     deleteFile: function (uri, s, f) {
