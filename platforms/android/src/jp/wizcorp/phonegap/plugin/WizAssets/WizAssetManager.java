@@ -53,6 +53,7 @@ public class WizAssetManager {
         Log.d(TAG, "external database file path -- " + DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME);
         initialiseDatabase = (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists();
         if (initialiseDatabase == false) {
+            checkForMigration();
             buildDB();
         } else {
             database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
@@ -196,5 +197,34 @@ public class WizAssetManager {
         } catch (Exception e) {
             Log.e(TAG, "Delete file error -- " + e.getMessage(), e);
         }
+    }
+
+    // If we detect a data structure created by a version of the plugin <= 5.0.0 we need to clean up
+    private void checkForMigration() {
+        String deprecatedDbLocation = that.getCacheDir().getAbsolutePath() + File.separator + "assets.db";
+        File deprecatedDbFile = new File(deprecatedDbLocation);
+        if (!deprecatedDbFile.exists()) {
+            return;
+        }
+
+        Log.d(TAG, "Found a deprecated database: removing cached files and database");
+        SQLiteDatabase deprecatedDb = SQLiteDatabase.openDatabase(deprecatedDbLocation, null, SQLiteDatabase.OPEN_READONLY);
+        int counter = 0;
+        try {
+            Cursor cursor = deprecatedDb.rawQuery("select * from assets", null);
+            String filePath;
+            while (cursor.moveToNext()) {
+                filePath = cursor.getString(cursor.getColumnIndex("filePath"));
+                File fileToDelete = new File(filePath);
+                if (fileToDelete.exists() && fileToDelete.delete()) {
+                    counter++;
+                }
+            }
+            cursor.close();
+        } catch (SQLiteException e3) {
+            Log.e(TAG, "error -- " + e3.getMessage(), e3);
+        }
+        Log.d(TAG, "removed " + counter + " cached files");
+        deprecatedDbFile.delete();
     }
 }
