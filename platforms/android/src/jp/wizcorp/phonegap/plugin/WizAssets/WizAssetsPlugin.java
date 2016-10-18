@@ -51,6 +51,9 @@ public class WizAssetsPlugin extends CordovaPlugin {
     private String TAG = "WizAssetsPlugin";
     private WizAssetManager wizAssetManager = null;
 
+    public static final String PLUGIN_FOLDER = "wizAssets";
+    public static final String ASSETS_FOLDER = "assets";
+
     private static final String DOWNLOAD_FILE_ACTION = "downloadFile";
     private static final String GET_FILE_URI_ACTION = "getFileURI";
     private static final String GET_FILE_URIS_ACTION = "getFileURIs";
@@ -67,7 +70,8 @@ public class WizAssetsPlugin extends CordovaPlugin {
     private static final int FILE_CREATION_ERROR = 7;
     private static final int JSON_CREATION_ERROR = 8;
 
-    private String pathToStorage;
+    private String pathToDatabase;
+    private String pathToAssets;
     private int blockSize;
 
     @Override
@@ -75,16 +79,28 @@ public class WizAssetsPlugin extends CordovaPlugin {
         super.initialize(cordova, webView);
 
         final Context applicationContext = cordova.getActivity().getApplicationContext();
-        pathToStorage = applicationContext.getCacheDir().getAbsolutePath() + File.separator;
+
+        pathToDatabase = applicationContext.getCacheDir().getAbsolutePath() + File.separator + PLUGIN_FOLDER;
+        pathToAssets = pathToDatabase + File.separator + ASSETS_FOLDER;
+
+        if (!createFolderIfRequired(pathToDatabase)) {
+            Log.e(TAG, "error -- unable to create folder: " + pathToDatabase);
+        } else if (!createFolderIfRequired(pathToAssets)) {
+            Log.e(TAG, "error -- unable to create folder: " + pathToAssets);
+        }
+
+        pathToDatabase += File.separator;
+        pathToAssets += File.separator;
+
         setBlockSize();
 
-        wizAssetManager = new WizAssetManager(applicationContext);
+        wizAssetManager = new WizAssetManager(applicationContext, pathToDatabase);
     }
 
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
     private void setBlockSize() {
-        android.os.StatFs stat = new android.os.StatFs(pathToStorage);
+        android.os.StatFs stat = new android.os.StatFs(pathToAssets);
         long blockSizeLong;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             blockSizeLong = stat.getBlockSizeLong();
@@ -192,7 +208,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
     }
 
     private String buildAssetFilePathFromUri(String uri) {
-        return pathToStorage + uri;
+        return pathToAssets + uri;
     }
 
     private void deleteFiles(JSONArray uris, CallbackContext callbackContext) {
@@ -237,13 +253,19 @@ public class WizAssetsPlugin extends CordovaPlugin {
     }
 
     @SuppressLint("NewApi")
-	private void downloadUrl(String fileUrl, String uri, String filePath, CallbackContext callbackContext){
+    private void downloadUrl(String fileUrl, String uri, String filePath, CallbackContext callbackContext){
         // Download files to sdcard, or phone if sdcard not exists
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             new AsyncDownload(fileUrl, uri, filePath, callbackContext).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         } else {
             new AsyncDownload(fileUrl, uri, filePath, callbackContext).execute();
         }
+    }
+
+    private boolean createFolderIfRequired(String folderPath) {
+        File folder = new File(folderPath);
+        if (folder.exists()) { return true; }
+        return folder.mkdir();
     }
 
     public class DeleteAssetsCallback {
@@ -263,18 +285,18 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         public String getErrorMessage(int errorCode) {
             switch (errorCode) {
-            case AsyncDelete.JSON_TYPE_ERROR:
-                return AsyncDelete.JSON_TYPE_ERROR_MESSAGE;
-            case AsyncDelete.IO_ERROR:
-                return AsyncDelete.IO_ERROR_MESSAGE;
-            case AsyncDelete.DELETE_CANCELED_ERROR:
-                return AsyncDelete.DELETE_CANCELED_ERROR_MESSAGE;
-            case AsyncDelete.DELETE_PARAMETERS_LENGTH_ERROR:
-                return AsyncDelete.DELETE_PARAMETERS_LENGTH_ERROR_MESSAGE;
-            case AsyncDelete.CALLBACK_ERROR:
-                return AsyncDelete.CALLBACK_ERROR_MESSAGE;
-            default:
-                return null;
+                case AsyncDelete.JSON_TYPE_ERROR:
+                    return AsyncDelete.JSON_TYPE_ERROR_MESSAGE;
+                case AsyncDelete.IO_ERROR:
+                    return AsyncDelete.IO_ERROR_MESSAGE;
+                case AsyncDelete.DELETE_CANCELED_ERROR:
+                    return AsyncDelete.DELETE_CANCELED_ERROR_MESSAGE;
+                case AsyncDelete.DELETE_PARAMETERS_LENGTH_ERROR:
+                    return AsyncDelete.DELETE_PARAMETERS_LENGTH_ERROR_MESSAGE;
+                case AsyncDelete.CALLBACK_ERROR:
+                    return AsyncDelete.CALLBACK_ERROR_MESSAGE;
+                default:
+                    return null;
             }
         }
     }
@@ -481,28 +503,28 @@ public class WizAssetsPlugin extends CordovaPlugin {
     }
 
     JSONObject createDownloadFileError(int code) throws JSONException {
-		return createDownloadFileError(code, -1, null);
+        return createDownloadFileError(code, -1, null);
     }
 
     JSONObject createDownloadFileError(int code, int status) throws JSONException {
-		return createDownloadFileError(code, status, null);
+        return createDownloadFileError(code, status, null);
     }
 
     JSONObject createDownloadFileError(int code, String message) throws JSONException {
-		return createDownloadFileError(code, -1, message);
+        return createDownloadFileError(code, -1, message);
     }
 
     JSONObject createDownloadFileError(int code, int status, String message) throws JSONException {
-		JSONObject errorObject = new JSONObject();
-		errorObject.put("code", code);
-		if (status != -1) {
-			errorObject.put("status", status);
-		}
-		if (message != null) {
-			errorObject.put("message", message);
-		} else {
-			errorObject.put("message", "No description");
-		}
-		return errorObject;
+        JSONObject errorObject = new JSONObject();
+        errorObject.put("code", code);
+        if (status != -1) {
+            errorObject.put("status", status);
+        }
+        if (message != null) {
+            errorObject.put("message", message);
+        } else {
+            errorObject.put("message", "No description");
+        }
+        return errorObject;
     }
 }

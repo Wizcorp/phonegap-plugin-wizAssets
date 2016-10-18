@@ -44,25 +44,25 @@ public class WizAssetManager {
     boolean initialiseDatabase;
     Context that;
 
-    public WizAssetManager(Context context) {
+    public WizAssetManager(Context context, String pathToDatabase) {
         Log.d(TAG, "Booting Wizard Asset Manager.");
 
         // context is application context
         that = context;
-        DATABASE_EXTERNAL_FILE_PATH =  that.getCacheDir().getAbsolutePath();
-        Log.d(TAG, "external database file path -- " + DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME);
-        initialiseDatabase = (new File(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME)).exists();
+        DATABASE_EXTERNAL_FILE_PATH = pathToDatabase;
+        Log.d(TAG, "external database file path -- " + DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME);
+        initialiseDatabase = (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists();
         if (initialiseDatabase == false) {
             buildDB();
         } else {
-            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
+            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
             Log.d(TAG, "DB already initiated.");
         }
     }
 
     public JSONObject getAllAssets() {
 
-        // try to open database from external storage (we should have moved it there), 
+        // try to open database from external storage (we should have moved it there),
         // if nothing in the external storage move the app version out to external
         // if not existing internal, return empty object and we can stream the assets in
         JSONObject returnObject = new JSONObject();
@@ -79,7 +79,7 @@ public class WizAssetManager {
             while (cursor.moveToNext()) {
                 uri = cursor.getString(cursor.getColumnIndex("uri"));
                 filePath = cursor.getString(cursor.getColumnIndex("filePath"));
-                // push to object 
+                // push to object
                 try {
                     returnObject.put(uri, filePath);
                 } catch (JSONException e) {
@@ -89,7 +89,7 @@ public class WizAssetManager {
             }
 
             cursor.close();
-            Log.d(TAG, "returnObject -> " + returnObject.toString()); 
+            Log.d(TAG, "returnObject -> " + returnObject.toString());
 
         } catch (SQLiteException e3) {
             // ignore
@@ -108,7 +108,7 @@ public class WizAssetManager {
             InputStream is = that.getAssets().open(DATABASE_INTERNAL_FILE_PATH + DATABASE_NAME);
 
             // Copy the database into the destination
-            OutputStream os = new FileOutputStream(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME);
+            OutputStream os = new FileOutputStream(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME);
 
             byte[] buffer = new byte[1024];
             int length;
@@ -120,7 +120,7 @@ public class WizAssetManager {
             os.close();
             is.close();
 
-            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
+            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
             Log.d(TAG, "Init DB Finish");
 
         } catch (IOException e1) {
@@ -156,7 +156,7 @@ public class WizAssetManager {
         String result;
         try {
             if (cursor.moveToFirst()) {
-                result = cursor.getString(0);               
+                result = cursor.getString(0);
             } else {
                 // Cursor move error
                 result = "NotFoundError";
