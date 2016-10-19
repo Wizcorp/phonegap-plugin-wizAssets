@@ -267,7 +267,9 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     private boolean createFolderIfRequired(String folderPath) {
         File folder = new File(folderPath);
-        if (folder.exists()) { return true; }
+        if (folder.exists()) {
+            return folder.isDirectory();
+        }
         return folder.mkdir();
     }
 
