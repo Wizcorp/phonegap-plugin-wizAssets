@@ -208,6 +208,9 @@ public class WizAssetsPlugin extends CordovaPlugin {
     }
 
     private String buildAssetFilePathFromUri(String uri) {
+        if (uri.charAt(0) == File.separatorChar) {
+            return pathToAssets + uri.substring(1);
+        }
         return pathToAssets + uri;
     }
 
