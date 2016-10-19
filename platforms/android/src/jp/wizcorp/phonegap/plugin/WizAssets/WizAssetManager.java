@@ -199,7 +199,7 @@ public class WizAssetManager {
         }
     }
 
-    // If we detect a data structure created by a version of the plugin <= 5.0.0 we need to clean up
+    // If we detect a data structure created by plugin version <= 5.0.0 we want to clean up
     private void checkForMigration() {
         String deprecatedDbLocation = that.getCacheDir().getAbsolutePath() + File.separator + "assets.db";
         File deprecatedDbFile = new File(deprecatedDbLocation);
@@ -221,6 +221,7 @@ public class WizAssetManager {
                 }
             }
             cursor.close();
+            deprecatedDb.close();
         } catch (SQLiteException e3) {
             Log.e(TAG, "error -- " + e3.getMessage(), e3);
         }
