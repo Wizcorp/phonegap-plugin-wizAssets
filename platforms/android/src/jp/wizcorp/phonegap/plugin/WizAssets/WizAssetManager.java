@@ -215,8 +215,7 @@ public class WizAssetManager {
             String filePath;
             while (cursor.moveToNext()) {
                 filePath = cursor.getString(cursor.getColumnIndex("filePath"));
-                File fileToDelete = new File(filePath);
-                if (fileToDelete.exists() && fileToDelete.delete()) {
+                if (new File(filePath).delete()) {
                     counter++;
                 }
             }

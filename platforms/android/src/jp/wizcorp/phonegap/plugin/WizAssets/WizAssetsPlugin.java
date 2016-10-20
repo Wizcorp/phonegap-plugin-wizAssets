@@ -50,10 +50,12 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     private String TAG = "WizAssetsPlugin";
     private WizAssetManager wizAssetManager = null;
+    private boolean initialized = false;
 
     public static final String PLUGIN_FOLDER = "wizAssets";
     public static final String ASSETS_FOLDER = "assets";
 
+    private static final String INITIALIZE = "initialize";
     private static final String DOWNLOAD_FILE_ACTION = "downloadFile";
     private static final String GET_FILE_URI_ACTION = "getFileURI";
     private static final String GET_FILE_URIS_ACTION = "getFileURIs";
@@ -85,8 +87,10 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         if (!createFolderIfRequired(pathToDatabase)) {
             Log.e(TAG, "error -- unable to create folder: " + pathToDatabase);
+            return;
         } else if (!createFolderIfRequired(pathToAssets)) {
             Log.e(TAG, "error -- unable to create folder: " + pathToAssets);
+            return;
         }
 
         pathToDatabase += File.separator;
@@ -95,6 +99,8 @@ public class WizAssetsPlugin extends CordovaPlugin {
         setBlockSize();
 
         wizAssetManager = new WizAssetManager(applicationContext, pathToDatabase);
+
+        initialized = wizAssetManager.isReady();
     }
 
     @SuppressWarnings("deprecation")
@@ -117,6 +123,16 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        if (action.equals(INITIALIZE) && initialized) {
+            callbackContext.success();
+            return true;
+        }
+
+        if (!initialized) {
+            callbackContext.error("plugin failed to initialize");
+            return true;
+        }
+
         if (action.equals(DOWNLOAD_FILE_ACTION)) {
             final String url = args.getString(0);
             final String uri = args.getString(1);
