@@ -32,6 +32,7 @@ typedef int CDVWizAssetsError;
 - (void)pluginInitialize;
 
 // Exposed to JavaScript
+- (void)initialize:(CDVInvokedUrlCommand *)command;
 - (void)downloadFile:(CDVInvokedUrlCommand *)command;
 - (void)getFileURI:(CDVInvokedUrlCommand *)command;
 - (void)getFileURIs:(CDVInvokedUrlCommand *)command;

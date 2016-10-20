@@ -8,7 +8,10 @@
  *
  */
 var exec = require("cordova/exec");
-var wizAssets = { 
+var wizAssets = {
+    initialize: function (s, f) {
+        return exec(s, f, "WizAssetsPlugin", "initialize", []);
+    },
     downloadFile: function (url, filePath, s, f) {
         window.setTimeout(
             function () {
@@ -25,13 +28,13 @@ var wizAssets = {
         return exec(s, f, "WizAssetsPlugin", "deleteFile", [uri]);
     },
     deleteFiles: function (uris, s, f) {
-        return exec(s, f, "WizAssetsPlugin", "deleteFiles", uris );
+        return exec(s, f, "WizAssetsPlugin", "deleteFiles", uris);
     },
     getFileURIs: function (s, f) {
-        return exec(s, f, "WizAssetsPlugin", "getFileURIs", [] );
+        return exec(s, f, "WizAssetsPlugin", "getFileURIs", []);
     },
     getFileURI: function (uri, s, f) {
-        return exec(s, f, "WizAssetsPlugin", "getFileURI", [uri] );
+        return exec(s, f, "WizAssetsPlugin", "getFileURI", [uri]);
     }
 };
 module.exports = wizAssets;
