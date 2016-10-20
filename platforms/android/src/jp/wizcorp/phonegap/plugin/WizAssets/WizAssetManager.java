@@ -41,6 +41,10 @@ public class WizAssetManager {
     private static final String DATABASE_TABLE_NAME = "assets";
     private SQLiteDatabase database;
 
+    // previous versions constants
+    private static final String V5_0_0_DATABASE_NAME = "assets.db";
+    private static final String V5_0_0_DATABASE_TABLE_NAME = "assets";
+
     boolean initialiseDatabase;
     Context that;
 
@@ -59,6 +63,10 @@ public class WizAssetManager {
             database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
             Log.d(TAG, "DB already initiated.");
         }
+    }
+
+    public boolean isReady() {
+        return (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists() && database.isOpen();
     }
 
     public JSONObject getAllAssets() {
@@ -201,7 +209,7 @@ public class WizAssetManager {
 
     // If we detect a data structure created by plugin version <= 5.0.0 we want to clean up
     private void checkForMigration() {
-        String deprecatedDbLocation = that.getCacheDir().getAbsolutePath() + File.separator + "assets.db";
+        String deprecatedDbLocation = that.getCacheDir().getAbsolutePath() + File.separator + V5_0_0_DATABASE_NAME;
         File deprecatedDbFile = new File(deprecatedDbLocation);
         if (!deprecatedDbFile.exists()) {
             return;
@@ -211,7 +219,7 @@ public class WizAssetManager {
         SQLiteDatabase deprecatedDb = SQLiteDatabase.openDatabase(deprecatedDbLocation, null, SQLiteDatabase.OPEN_READONLY);
         int counter = 0;
         try {
-            Cursor cursor = deprecatedDb.rawQuery("select * from assets", null);
+            Cursor cursor = deprecatedDb.rawQuery("select * from " + V5_0_0_DATABASE_TABLE_NAME, null);
             String filePath;
             while (cursor.moveToNext()) {
                 filePath = cursor.getString(cursor.getColumnIndex("filePath"));
