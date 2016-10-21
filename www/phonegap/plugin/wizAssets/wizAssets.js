@@ -9,10 +9,10 @@
  */
 var exec = require("cordova/exec");
 var wizAssets = {
-    initialize: function (s, f) {
+    isReady: function (s, f) {
         return exec(s, function (error) {
             return f(WizAssetsError.generate(error));
-        }, "WizAssetsPlugin", "initialize", []);
+        }, "WizAssetsPlugin", "isReady", []);
     },
     downloadFile: function (url, filePath, s, f) {
         return window.setTimeout(function () {
