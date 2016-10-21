@@ -17,7 +17,7 @@ var wizAssets = {
     downloadFile: function (url, filePath, s, f) {
         return window.setTimeout(function () {
             return exec(s, function (error) {
-                return return f(WizAssetsError.generate(error));
+                return f(WizAssetsError.generate(error));
             }, "WizAssetsPlugin", "downloadFile", [url, filePath]);
         }, 0);
     },
