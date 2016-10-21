@@ -125,17 +125,15 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals(IS_READY_ACTION) && initialized) {
-            callbackContext.success();
-            return true;
-        }
-
         if (!initialized) {
             callbackContext.error(INITIALIZATION_ERROR);
             return true;
         }
 
-        if (action.equals(DOWNLOAD_FILE_ACTION)) {
+        if (action.equals(IS_READY_ACTION)) {
+            callbackContext.success();
+            return true;
+        } else if (action.equals(DOWNLOAD_FILE_ACTION)) {
             final String url = args.getString(0);
             final String uri = args.getString(1);
             final CallbackContext _callbackContext = callbackContext;
@@ -159,9 +157,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 }
             });
             return true;
-
         } else if (action.equals(GET_FILE_URI_ACTION)) {
-
             Log.d(TAG, "[getFileURI] search full file path for: "+ args.toString() );
             String asset = null;
 
@@ -180,25 +176,19 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 callbackContext.success(asset);
             }
             return true;
-
         } else if (action.equals(GET_FILE_URIS_ACTION)) {
-
             // Return all assets as asset map object
             Log.d(TAG, "[getFileURIs] returning all assets as map");
             JSONObject assetObject = wizAssetManager.getAllAssets();
             callbackContext.success(assetObject);
             return true;
-
         } else if (action.equals(DELETE_FILES_ACTION)) {
-
             // Delete all files from given array
             Log.d(TAG, "[deleteFiles] *********** ");
             deleteFiles(args, callbackContext);
 
             return true;
-
         } else if (action.equals(DELETE_FILE_ACTION)) {
-
             Log.d(TAG, "[deleteFile] *********** " + args.getString(0));
             String uri = args.getString(0);
             try {
