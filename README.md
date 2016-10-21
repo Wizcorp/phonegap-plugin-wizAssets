@@ -10,24 +10,40 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 
 ## Install (with Plugman) 
 
-	cordova plugin add https://github.com/Wizcorp/phonegap-plugin-wizAssets
-	cordova build ios
-	
-	< or >
-	
-	phonegap local plugin add https://github.com/Wizcorp/phonegap-plugin-wizAssets
-	phonegap build ios
+    cordova plugin add https://github.com/Wizcorp/phonegap-plugin-wizAssets
+    cordova build ios
+    
+    < or >
+    
+    phonegap local plugin add https://github.com/Wizcorp/phonegap-plugin-wizAssets
+    phonegap build ios
 
 
 
 ## APIs
+
+
+### wizAssets.isReady(success, fail)
+
+- It's recommended to call this method first to know if plugin initialization went well. In some rare corner cases (if device storage is not writable for an unknown reason for instance) it can fail.
+- If initialization failed, any other API call will call the error callback.
+
+**Example**
+```javascript
+wizAssets.isReady(function () {
+        console.log('wiz assets is ready to be used');
+    }, function () {
+        console.log('wiz assets did not initialize, it cannot be used');
+    }
+);
+```
 
 ### wizAssets.downloadFile(remoteURL, assetId, success, fail)
 
 - downloads a file to native App directory @ ./ + gameDir+ / + assetId <br />
 - A success returns a local URL string like; file://documents/settings/img/cards/card001.jpg <br />
 - An error returns an error object such as:
-```
+```javascript
 {
     "code": WizAssetsError value,
     "status": if code is a HTTP_REQUEST_ERROR, the status of the HTPP request, optional
@@ -36,7 +52,7 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 ```
 
 **Example**
-``` 
+``` javascript
 wizAssets.downloadFile("http://google.com/logo.jpg", "img/ui/logo.jpg", successCallback, failCallback);
 ```
 
@@ -48,7 +64,7 @@ wizAssets.downloadFile("http://google.com/logo.jpg", "img/ui/logo.jpg", successC
 
 
 **Example**
-```
+```javascript
 wizAssets.deleteFile("img/cards/card001.jpg", successCallback, failCallback);
 ```
 
@@ -60,7 +76,7 @@ wizAssets.deleteFile("img/cards/card001.jpg", successCallback, failCallback);
 - the array CAN contain one asset id
 
 **Example**
-```
+```javascript
 wizAssets.deleteFiles(["img/cards/card001.jpg", "img/cards/card002.jpg"], successCallback, failCallback);
 ```
 
@@ -70,7 +86,7 @@ wizAssets.deleteFiles(["img/cards/card001.jpg", "img/cards/card002.jpg"], succes
 - A failure returns an error message
 
 **Example**
-```
+```javascript
 wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback);
 ```
 
@@ -79,7 +95,7 @@ wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback);
 - A success returns a hashmap of asset id matching its local URL such as
 - A failure returns an error message
 
-```
+```javascript
 {
 
     "img/ui/loader.gif"  : "/sdcard/<appname>/img/ui/loading.gif", 
@@ -89,7 +105,7 @@ wizAssets.getFileURI("img/ui/logo.jpg", successCallback, failCallback);
 ```
 
 **Example**
-```
+```javascript
 wizAssets.getFileURIs(successCallback, failCallback);
 ```
 
@@ -98,7 +114,7 @@ wizAssets.getFileURIs(successCallback, failCallback);
 All error codes are available via ```window.WizAssetsError```.
 
 **Example**
-```
+```javascript
 function fail(error) {
     if (error.code === window.WizAssetsError.HTTP_REQUEST_ERROR) {
         // Check error.status
@@ -118,3 +134,5 @@ function fail(error) {
 |    6 | `DIRECTORY_CREATION_ERROR`   | Creation of the directory to save the asset failed                                                     |
 |    7 | `FILE_CREATION_ERROR`        | Saving the asset failed                                                                                |
 |    8 | `JSON_CREATION_ERROR`        | Your call to WizAssets' method failed and its error could not be processed internally                  |
+|    9 | `INITIALIZATION_ERROR`       | WizAssets initialization failed                                                                        |
+|   10 | `UNREFERENCED_ERROR`         | Unknown error: message string (error.message) will contains more information                           |

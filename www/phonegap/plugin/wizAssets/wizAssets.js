@@ -10,31 +10,37 @@
 var exec = require("cordova/exec");
 var wizAssets = {
     initialize: function (s, f) {
-        return exec(s, f, "WizAssetsPlugin", "initialize", []);
+        return exec(s, function (error) {
+            return f(WizAssetsError.generate(error));
+        }, "WizAssetsPlugin", "initialize", []);
     },
     downloadFile: function (url, filePath, s, f) {
-        window.setTimeout(
-            function () {
-                function failure(error) {
-                    if (error === WizAssetsError.JSON_CREATION_ERROR) {
-                        error = new WizAssetsError(error);
-                    }
-                    return f(error);
-                }
-                exec(s, failure, "WizAssetsPlugin", "downloadFile", [url, filePath]);
-            }, 0);
+        return window.setTimeout(function () {
+            return exec(s, function (error) {
+                return return f(WizAssetsError.generate(error));
+            }, "WizAssetsPlugin", "downloadFile", [url, filePath]);
+        }, 0);
     },
     deleteFile: function (uri, s, f) {
-        return exec(s, f, "WizAssetsPlugin", "deleteFile", [uri]);
+        return exec(s, function (error) {
+            return f(WizAssetsError.generate(error));
+        }, "WizAssetsPlugin", "deleteFile", [uri]);
     },
     deleteFiles: function (uris, s, f) {
-        return exec(s, f, "WizAssetsPlugin", "deleteFiles", uris);
+        return exec(s, function (error) {
+            return f(WizAssetsError.generate(error));
+        }, "WizAssetsPlugin", "deleteFiles", uris);
     },
     getFileURIs: function (s, f) {
-        return exec(s, f, "WizAssetsPlugin", "getFileURIs", []);
+        return exec(s, function (error) {
+            return f(WizAssetsError.generate(error));
+        }, "WizAssetsPlugin", "getFileURIs", []);
     },
     getFileURI: function (uri, s, f) {
-        return exec(s, f, "WizAssetsPlugin", "getFileURI", [uri]);
+        return exec(s, function (error) {
+            return f(WizAssetsError.generate(error));
+        }, "WizAssetsPlugin", "getFileURI", [uri]);
     }
 };
+
 module.exports = wizAssets;

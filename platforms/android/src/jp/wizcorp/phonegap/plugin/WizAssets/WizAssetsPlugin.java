@@ -55,7 +55,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
     public static final String PLUGIN_FOLDER = "wizAssets";
     public static final String ASSETS_FOLDER = "assets";
 
-    private static final String INITIALIZE = "initialize";
+    private static final String IS_READY_ACTION = "isReady";
     private static final String DOWNLOAD_FILE_ACTION = "downloadFile";
     private static final String GET_FILE_URI_ACTION = "getFileURI";
     private static final String GET_FILE_URIS_ACTION = "getFileURIs";
@@ -71,6 +71,8 @@ public class WizAssetsPlugin extends CordovaPlugin {
     private static final int DIRECTORY_CREATION_ERROR = 6;
     private static final int FILE_CREATION_ERROR = 7;
     private static final int JSON_CREATION_ERROR = 8;
+    private static final int INITIALIZATION_ERROR = 9;
+    private static final int UNREFERENCED_ERROR = 10;
 
     private String pathToDatabase;
     private String pathToAssets;
@@ -123,13 +125,13 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        if (action.equals(INITIALIZE) && initialized) {
+        if (action.equals(IS_READY_ACTION) && initialized) {
             callbackContext.success();
             return true;
         }
 
         if (!initialized) {
-            callbackContext.error("plugin failed to initialize");
+            callbackContext.error(INITIALIZATION_ERROR);
             return true;
         }
 

@@ -24,8 +24,25 @@
 /**
  * WizAssetsError
  */
-function WizAssetsError(error) {
-  this.code = error || null;
+function WizAssetsError(error, message) {
+	this.code = error || null;
+	this.message = message || null;
+}
+
+/**
+ * Generate a well formed WizAssetsError from any kind of input (number, string, object...)
+ * TODO: should normalize error types on native side
+ */
+WizAssetsError.generate = function WizAssetsErrorGenerate (error) {
+	if (typeof error === 'string') {
+		return new WizAssetsError(WizAssetsError.UNREFERENCED_ERROR, error);
+	} else if (typeof error === 'number') {
+		return new WizAssetsError(error);
+	} else if (error && error.code !== undefined) {
+		return error;
+	} else {
+		return new WizAssetsError(WizAssetsError.UNREFERENCED_ERROR, error && error.toString());
+	}
 }
 
 // WizAssets error codes
@@ -37,5 +54,7 @@ WizAssetsError.HTTP_REQUEST_CONTENT_ERROR = 5;
 WizAssetsError.DIRECTORY_CREATION_ERROR = 6;
 WizAssetsError.FILE_CREATION_ERROR = 7;
 WizAssetsError.JSON_CREATION_ERROR = 8;
+WizAssetsError.INITIALIZATION_ERROR = 9;
+WizAssetsError.UNREFERENCED_ERROR = 10;
 
 module.exports = WizAssetsError;

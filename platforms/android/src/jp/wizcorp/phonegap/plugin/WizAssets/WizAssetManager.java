@@ -66,11 +66,10 @@ public class WizAssetManager {
     }
 
     public boolean isReady() {
-        return (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists() && database.isOpen();
+        return (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists() && database != null && database.isOpen();
     }
 
     public JSONObject getAllAssets() {
-
         // try to open database from external storage (we should have moved it there),
         // if nothing in the external storage move the app version out to external
         // if not existing internal, return empty object and we can stream the assets in
