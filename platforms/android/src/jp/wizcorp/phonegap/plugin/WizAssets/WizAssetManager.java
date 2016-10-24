@@ -41,28 +41,36 @@ public class WizAssetManager {
     private static final String DATABASE_TABLE_NAME = "assets";
     private SQLiteDatabase database;
 
+    // previous versions constants
+    private static final String V5_0_0_DATABASE_NAME = "assets.db";
+    private static final String V5_0_0_DATABASE_TABLE_NAME = "assets";
+
     boolean initialiseDatabase;
     Context that;
 
-    public WizAssetManager(Context context) {
+    public WizAssetManager(Context context, String pathToDatabase) {
         Log.d(TAG, "Booting Wizard Asset Manager.");
 
         // context is application context
         that = context;
-        DATABASE_EXTERNAL_FILE_PATH =  that.getCacheDir().getAbsolutePath();
-        Log.d(TAG, "external database file path -- " + DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME);
-        initialiseDatabase = (new File(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME)).exists();
+        DATABASE_EXTERNAL_FILE_PATH = pathToDatabase;
+        Log.d(TAG, "external database file path -- " + DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME);
+        initialiseDatabase = (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists();
         if (initialiseDatabase == false) {
+            checkForMigration();
             buildDB();
         } else {
-            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
+            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
             Log.d(TAG, "DB already initiated.");
         }
     }
 
-    public JSONObject getAllAssets() {
+    public boolean isReady() {
+        return (new File(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME)).exists() && database != null && database.isOpen();
+    }
 
-        // try to open database from external storage (we should have moved it there), 
+    public JSONObject getAllAssets() {
+        // try to open database from external storage (we should have moved it there),
         // if nothing in the external storage move the app version out to external
         // if not existing internal, return empty object and we can stream the assets in
         JSONObject returnObject = new JSONObject();
@@ -79,7 +87,7 @@ public class WizAssetManager {
             while (cursor.moveToNext()) {
                 uri = cursor.getString(cursor.getColumnIndex("uri"));
                 filePath = cursor.getString(cursor.getColumnIndex("filePath"));
-                // push to object 
+                // push to object
                 try {
                     returnObject.put(uri, filePath);
                 } catch (JSONException e) {
@@ -89,7 +97,7 @@ public class WizAssetManager {
             }
 
             cursor.close();
-            Log.d(TAG, "returnObject -> " + returnObject.toString()); 
+            Log.d(TAG, "returnObject -> " + returnObject.toString());
 
         } catch (SQLiteException e3) {
             // ignore
@@ -108,7 +116,7 @@ public class WizAssetManager {
             InputStream is = that.getAssets().open(DATABASE_INTERNAL_FILE_PATH + DATABASE_NAME);
 
             // Copy the database into the destination
-            OutputStream os = new FileOutputStream(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME);
+            OutputStream os = new FileOutputStream(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME);
 
             byte[] buffer = new byte[1024];
             int length;
@@ -120,7 +128,7 @@ public class WizAssetManager {
             os.close();
             is.close();
 
-            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + File.separator + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
+            database = SQLiteDatabase.openDatabase(DATABASE_EXTERNAL_FILE_PATH + DATABASE_NAME, null, SQLiteDatabase.OPEN_READWRITE);
             Log.d(TAG, "Init DB Finish");
 
         } catch (IOException e1) {
@@ -156,7 +164,7 @@ public class WizAssetManager {
         String result;
         try {
             if (cursor.moveToFirst()) {
-                result = cursor.getString(0);               
+                result = cursor.getString(0);
             } else {
                 // Cursor move error
                 result = "NotFoundError";
@@ -196,5 +204,34 @@ public class WizAssetManager {
         } catch (Exception e) {
             Log.e(TAG, "Delete file error -- " + e.getMessage(), e);
         }
+    }
+
+    // If we detect a data structure created by plugin version <= 5.0.0 we want to clean up
+    private void checkForMigration() {
+        String deprecatedDbLocation = that.getCacheDir().getAbsolutePath() + File.separator + V5_0_0_DATABASE_NAME;
+        File deprecatedDbFile = new File(deprecatedDbLocation);
+        if (!deprecatedDbFile.exists()) {
+            return;
+        }
+
+        Log.d(TAG, "Found a deprecated database: removing cached files and database");
+        SQLiteDatabase deprecatedDb = SQLiteDatabase.openDatabase(deprecatedDbLocation, null, SQLiteDatabase.OPEN_READONLY);
+        int counter = 0;
+        try {
+            Cursor cursor = deprecatedDb.rawQuery("select * from " + V5_0_0_DATABASE_TABLE_NAME, null);
+            String filePath;
+            while (cursor.moveToNext()) {
+                filePath = cursor.getString(cursor.getColumnIndex("filePath"));
+                if (WizAssetsPlugin.deleteFile(new File(filePath))) {
+                    counter++;
+                }
+            }
+            cursor.close();
+            deprecatedDb.close();
+        } catch (SQLiteException e3) {
+            Log.e(TAG, "error -- " + e3.getMessage(), e3);
+        }
+        Log.d(TAG, "removed " + counter + " cached files");
+        deprecatedDbFile.delete();
     }
 }

@@ -20,7 +20,9 @@ enum CDVWizAssetsError {
     HTTP_REQUEST_CONTENT_ERROR = 5,
     DIRECTORY_CREATION_ERROR = 6,
     FILE_CREATION_ERROR = 7,
-    JSON_CREATION_ERROR = 8
+    JSON_CREATION_ERROR = 8,
+    INITIALIZATION_ERROR = 9,
+    UNREFERENCED_ERROR = 10
 };
 typedef int CDVWizAssetsError;
 
@@ -32,6 +34,7 @@ typedef int CDVWizAssetsError;
 - (void)pluginInitialize;
 
 // Exposed to JavaScript
+- (void)initialize:(CDVInvokedUrlCommand *)command;
 - (void)downloadFile:(CDVInvokedUrlCommand *)command;
 - (void)getFileURI:(CDVInvokedUrlCommand *)command;
 - (void)getFileURIs:(CDVInvokedUrlCommand *)command;

@@ -31,6 +31,14 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 }
 
 /*
+ * initialize - not doing anything (yet) on iOS, just returning true
+ */
+- (void)initialize:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+/*
  * downloadFile - download from an HTTP to app folder
  */
 - (void)downloadFile:(CDVInvokedUrlCommand *)command {
@@ -60,7 +68,7 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
     NSURLRequest *request = [NSURLRequest requestWithURL:URL];
 
     NSURLSessionDownloadTask *downloadTask = [self.session downloadTaskWithRequest:request
-                                                            completionHandler:
+                                                                 completionHandler:
                                               ^(NSURL *location, NSURLResponse *response, NSError *error) {
                                                   CDVPluginResult *result = nil;
                                                   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
@@ -92,7 +100,7 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
                                                   dispatch_async(dispatch_get_main_queue(), ^{
                                                       [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
                                                   });
-    }];
+                                              }];
 
     [downloadTask resume];
 }
