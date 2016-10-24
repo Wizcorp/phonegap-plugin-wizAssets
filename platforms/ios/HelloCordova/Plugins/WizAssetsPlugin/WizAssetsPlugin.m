@@ -31,9 +31,9 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 }
 
 /*
- * isReady - not doing anything (yet) on iOS, just returning true
+ * initialize - not doing anything (yet) on iOS, just returning true
  */
-- (void)isReady:(CDVInvokedUrlCommand *)command {
+- (void)initialize:(CDVInvokedUrlCommand *)command {
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }

@@ -23,14 +23,14 @@ PhoneGap plugin for managing application assets with javascript asset maps. Incl
 ## APIs
 
 
-### wizAssets.isReady(success, fail)
+### wizAssets.initialize(success, fail)
 
-- It's recommended to call this method first to know if plugin initialization went well. In some rare corner cases (if device storage is not writable for an unknown reason for instance) it can fail.
+- Call this method first to know if plugin initialization went well. In some rare corner cases (if device storage is not writable for an unknown reason for instance) it can fail.
 - If initialization failed, any other API call will call the error callback.
 
 **Example**
 ```javascript
-wizAssets.isReady(function () {
+wizAssets.initialize(function () {
         console.log('wiz assets is ready to be used');
     }, function () {
         console.log('wiz assets did not initialize, it cannot be used');

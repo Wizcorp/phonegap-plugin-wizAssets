@@ -55,7 +55,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
     public static final String PLUGIN_FOLDER = "wizAssets";
     public static final String ASSETS_FOLDER = "assets";
 
-    private static final String IS_READY_ACTION = "isReady";
+    private static final String INITIALIZE_ACTION = "initialize";
     private static final String DOWNLOAD_FILE_ACTION = "downloadFile";
     private static final String GET_FILE_URI_ACTION = "getFileURI";
     private static final String GET_FILE_URIS_ACTION = "getFileURIs";
@@ -130,7 +130,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
             return true;
         }
 
-        if (action.equals(IS_READY_ACTION)) {
+        if (action.equals(INITIALIZE_ACTION)) {
             callbackContext.success();
             return true;
         } else if (action.equals(DOWNLOAD_FILE_ACTION)) {
