@@ -222,7 +222,7 @@ public class WizAssetManager {
             String filePath;
             while (cursor.moveToNext()) {
                 filePath = cursor.getString(cursor.getColumnIndex("filePath"));
-                if (new File(filePath).delete()) {
+                if (WizAssetsPlugin.deleteFile(new File(filePath))) {
                     counter++;
                 }
             }

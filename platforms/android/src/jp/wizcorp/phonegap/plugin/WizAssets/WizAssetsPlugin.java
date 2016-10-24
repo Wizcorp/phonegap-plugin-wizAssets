@@ -246,7 +246,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
         }
     }
 
-    private boolean deleteFile(File file) {
+    public static boolean deleteFile(File file) {
         boolean deleteSucceed = true;
         if (file.isDirectory()) {
             String files[] = file.list();
