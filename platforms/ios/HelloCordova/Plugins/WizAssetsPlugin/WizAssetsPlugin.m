@@ -72,7 +72,7 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
                                                   CDVPluginResult *result = nil;
                                                   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
                                                   NSInteger statusCode = httpResponse.statusCode;
-                                                  if (statusCode >= 200 && statusCode < 300) {
+                                                  if (!error && statusCode >= 200 && statusCode < 300) {
                                                       result = [self moveFileAtURL:location toFilePath:filePath];
                                                   } else if (error) {
                                                       result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:HTTP_REQUEST_ERROR status:statusCode message:[error description]]];
