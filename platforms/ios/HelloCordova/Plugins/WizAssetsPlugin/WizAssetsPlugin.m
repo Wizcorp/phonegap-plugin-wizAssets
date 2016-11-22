@@ -55,8 +55,7 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
     NSString *uri = [command.arguments objectAtIndex:1];
     NSString *filePath = [self buildAssetFilePathFromUri:uri];
 
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    if ([fileManager fileExistsAtPath:filePath] == YES) {
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath] == YES) {
         // download complete pass back confirmation to JS
         CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
         [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -73,29 +72,12 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
                                                   CDVPluginResult *result = nil;
                                                   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
                                                   NSInteger statusCode = httpResponse.statusCode;
-                                                  if (error) {
-                                                      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:CONNECTIVITY_ERROR message:[error description]]];
-                                                  } else if (statusCode < 200 || statusCode >= 300) {
-                                                      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:HTTP_REQUEST_ERROR status:statusCode]];
+                                                  if (statusCode >= 200 && statusCode < 300) {
+                                                      result = [self moveFileAtURL:location toFilePath:filePath];
+                                                  } else if (error) {
+                                                      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:HTTP_REQUEST_ERROR status:statusCode message:[error description]]];
                                                   } else {
-                                                      NSError *ioError = nil;
-                                                      NSString *fullDir = [filePath stringByDeletingLastPathComponent];
-                                                      BOOL isDirectoryCreated = [fileManager createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error:&ioError];
-                                                      if (ioError) {
-                                                          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:DIRECTORY_CREATION_ERROR message:[ioError description]]];
-                                                      } else if (!isDirectoryCreated) {
-                                                          result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:DIRECTORY_CREATION_ERROR]];
-                                                      } else {
-                                                          NSURL *filePathURL = [NSURL fileURLWithPath:filePath];
-                                                          BOOL isFileMoved = [fileManager moveItemAtURL:location toURL:filePathURL error:&ioError];
-                                                          if (ioError) {
-                                                              result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:FILE_CREATION_ERROR message:[ioError description]]];
-                                                          } else if (!isFileMoved) {
-                                                              result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:FILE_CREATION_ERROR]];
-                                                          } else {
-                                                              result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
-                                                          }
-                                                      }
+                                                      result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:HTTP_REQUEST_ERROR status:statusCode]];
                                                   }
                                                   dispatch_async(dispatch_get_main_queue(), ^{
                                                       [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -103,6 +85,30 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
                                               }];
 
     [downloadTask resume];
+}
+
+- (CDVPluginResult *)moveFileAtURL:(NSURL *)location toFilePath:(NSString *)filePath {
+    CDVPluginResult *result = nil;
+    NSError *error = nil;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *fullDir = [filePath stringByDeletingLastPathComponent];
+    BOOL isDirectoryCreated = [fileManager createDirectoryAtPath:fullDir withIntermediateDirectories:YES attributes:nil error:&error];
+    if (error) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:DIRECTORY_CREATION_ERROR message:[error description]]];
+    } else if (!isDirectoryCreated) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:DIRECTORY_CREATION_ERROR]];
+    } else {
+        NSURL *filePathURL = [NSURL fileURLWithPath:filePath];
+        BOOL isFileMoved = [fileManager moveItemAtURL:location toURL:filePathURL error:&error];
+        if (error) {
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:FILE_CREATION_ERROR message:[error description]]];
+        } else if (!isFileMoved) {
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:[self createDownloadFileError:FILE_CREATION_ERROR]];
+        } else {
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
+        }
+    }
+    return result;
 }
 
 - (NSDictionary *)createDownloadFileError:(int)code {
