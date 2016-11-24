@@ -1,7 +1,6 @@
 # phonegap-plugin-wizAssets 
 
 - PhoneGap Version : 3.0
-- last update : 23/05/2016
 
 # Description
 
