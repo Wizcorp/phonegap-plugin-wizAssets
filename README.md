@@ -134,4 +134,5 @@ function fail(error) {
 |    7 | `FILE_CREATION_ERROR`        | Saving the asset failed                                                                                |
 |    8 | `JSON_CREATION_ERROR`        | Your call to WizAssets' method failed and its error could not be processed internally                  |
 |    9 | `INITIALIZATION_ERROR`       | WizAssets initialization failed                                                                        |
-|   10 | `UNREFERENCED_ERROR`         | Unknown error: message string (error.message) will contains more information                           |
+|   10 | `NOT_FOUND_ERROR`            | Asset could not be found                                                                               |
+|   11 | `UNREFERENCED_ERROR`         | Unknown error: message string (error.message) will contains more information                           |

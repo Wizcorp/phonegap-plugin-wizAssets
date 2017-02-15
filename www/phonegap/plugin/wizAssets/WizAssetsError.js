@@ -55,6 +55,7 @@ WizAssetsError.DIRECTORY_CREATION_ERROR = 6;
 WizAssetsError.FILE_CREATION_ERROR = 7;
 WizAssetsError.JSON_CREATION_ERROR = 8;
 WizAssetsError.INITIALIZATION_ERROR = 9;
-WizAssetsError.UNREFERENCED_ERROR = 10;
+WizAssetsError.NOT_FOUND_ERROR = 10;
+WizAssetsError.UNREFERENCED_ERROR = 11;
 
 module.exports = WizAssetsError;

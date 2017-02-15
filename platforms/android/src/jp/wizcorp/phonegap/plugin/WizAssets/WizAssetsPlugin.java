@@ -49,7 +49,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 public class WizAssetsPlugin extends CordovaPlugin {
 
     private String TAG = "WizAssetsPlugin";
-    private WizAssetManager wizAssetManager = null;
     private boolean initialized = false;
 
     public static final String PLUGIN_FOLDER = "wizAssets";
@@ -72,9 +71,11 @@ public class WizAssetsPlugin extends CordovaPlugin {
     private static final int FILE_CREATION_ERROR = 7;
     private static final int JSON_CREATION_ERROR = 8;
     private static final int INITIALIZATION_ERROR = 9;
-    private static final int UNREFERENCED_ERROR = 10;
+    private static final int NOT_FOUND_ERROR = 10;
+    private static final int UNREFERENCED_ERROR = 11;
 
-    private String pathToDatabase;
+    private static final String DEPRECATED_DATABASE_NAME = "assets.db";
+
     private String pathToAssets;
     private int blockSize;
 
@@ -84,25 +85,38 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         final Context applicationContext = cordova.getActivity().getApplicationContext();
 
-        pathToDatabase = applicationContext.getCacheDir().getAbsolutePath() + File.separator + PLUGIN_FOLDER;
-        pathToAssets = pathToDatabase + File.separator + ASSETS_FOLDER;
+        String pathToCache = applicationContext.getCacheDir().getAbsolutePath() + File.separator;
 
-        if (!createFolderIfRequired(pathToDatabase)) {
-            Log.e(TAG, "error -- unable to create folder: " + pathToDatabase);
+        String pathToPlugin = pathToCache + PLUGIN_FOLDER;
+        pathToAssets = pathToPlugin + File.separator + ASSETS_FOLDER;
+
+        if (!createFolderIfRequired(pathToPlugin)) {
+            Log.e(TAG, "error -- unable to create plugin folder: " + pathToPlugin);
             return;
         } else if (!createFolderIfRequired(pathToAssets)) {
-            Log.e(TAG, "error -- unable to create folder: " + pathToAssets);
+            Log.e(TAG, "error -- unable to create assets folder: " + pathToAssets);
             return;
         }
 
-        pathToDatabase += File.separator;
         pathToAssets += File.separator;
 
         setBlockSize();
 
-        wizAssetManager = new WizAssetManager(applicationContext, pathToDatabase);
+        removeDeprecatedDatabases(pathToCache);
 
-        initialized = wizAssetManager.isReady();
+        initialized = true;
+    }
+
+    public void removeDeprecatedDatabases(String pathToCache) {
+        // Removing database version 6.x.x
+        String deprecatedDatabasePath = pathToCache + PLUGIN_FOLDER + File.separator + DEPRECATED_DATABASE_NAME;
+        File deprecatedDatabaseFile = new File(deprecatedDatabasePath);
+        deprecatedDatabaseFile.delete();
+
+        // Removing database version <= 5.x.x
+        deprecatedDatabasePath = pathToCache + DEPRECATED_DATABASE_NAME;
+        deprecatedDatabaseFile = new File(deprecatedDatabasePath);
+        deprecatedDatabaseFile.delete();
     }
 
     @SuppressWarnings("deprecation")
@@ -139,13 +153,12 @@ public class WizAssetsPlugin extends CordovaPlugin {
             final CallbackContext _callbackContext = callbackContext;
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
-                    String filePathInDB = getAssetFilePathFromUri(uri);
                     String filePath = buildAssetFilePathFromUri(uri);
                     File file = new File(filePath);
-                    if (filePathInDB != null && file.exists()) {
+                    if (file.exists()) {
                         // File is already in cache folder, don't download it
                         Log.d(TAG, "[Is in cache] " + uri);
-                        String result = "file://" + file.getAbsolutePath();
+                        String result = buildLocalFileUrl(file.getAbsolutePath());
                         _callbackContext.success(result);
                     } else {
                         // File is not in cache folder, download it
@@ -159,28 +172,28 @@ public class WizAssetsPlugin extends CordovaPlugin {
             return true;
         } else if (action.equals(GET_FILE_URI_ACTION)) {
             Log.d(TAG, "[getFileURI] search full file path for: "+ args.toString() );
-            String asset = null;
 
-            try {
-                String relativePath = args.getString(0);
-                asset = getAssetFilePathFromUri(relativePath);
-            } catch (JSONException e) {
-                Log.d(TAG, "[getFileURI] error: " + e.toString());
-                callbackContext.error(e.toString());
-            }
-
-            if (asset == null) {
-                callbackContext.error("NotFoundError");
-            } else {
+            String uri = args.getString(0);
+            String filePath = buildAssetFilePathFromUri(uri);
+            File file = new File(filePath);
+            if (file.exists()) {
+                String asset = buildLocalFileUrl(filePath);
                 Log.d(TAG, "[getFileURI] Returning full path: " + asset);
                 callbackContext.success(asset);
+            } else {
+                callbackContext.error(NOT_FOUND_ERROR);
             }
             return true;
         } else if (action.equals(GET_FILE_URIS_ACTION)) {
             // Return all assets as asset map object
             Log.d(TAG, "[getFileURIs] returning all assets as map");
-            JSONObject assetObject = wizAssetManager.getAllAssets();
-            callbackContext.success(assetObject);
+            try {
+                JSONObject assetObject = getAllAssets();
+                callbackContext.success(assetObject);
+            } catch (JSONException e) {
+                Log.d(TAG, "[getFileURIs] error: " + e.toString());
+                callbackContext.error(JSON_CREATION_ERROR);
+            }
             return true;
         } else if (action.equals(DELETE_FILES_ACTION)) {
             // Delete all files from given array
@@ -206,13 +219,28 @@ public class WizAssetsPlugin extends CordovaPlugin {
         return false;  // Returning false results in a "MethodNotFound" error.
     }
 
-    private String getAssetFilePathFromUri(String file) {
-        String asset = wizAssetManager.getFile(file);
-        if (asset == null || asset == "" || asset.contains("NotFoundError")) {
-            return null;
-        }
+    private JSONObject getAllAssets() throws JSONException {
+        JSONObject assets = new JSONObject();
+        File assetsRoot = new File(pathToAssets);
+        getAllAssets(assetsRoot, assets);
+        return assets;
+    }
 
-        return asset;
+    private void getAllAssets(File file, JSONObject assets) throws JSONException {
+        if (file.isDirectory()) {
+            String files[] = file.list();
+            for (String filename : files) {
+                File subFile = new File(file, filename);
+                getAllAssets(subFile, assets);
+            }
+        } else {
+            String filePath = file.getAbsolutePath();
+            assets.put(buildUriFromAssetFilePath(filePath), buildLocalFileUrl(filePath));
+        }
+    }
+
+    private String buildUriFromAssetFilePath(String filePath) {
+        return filePath.substring(pathToAssets.length());
     }
 
     private String buildAssetFilePathFromUri(String uri) {
@@ -220,6 +248,10 @@ public class WizAssetsPlugin extends CordovaPlugin {
             return pathToAssets + uri.substring(1);
         }
         return pathToAssets + uri;
+    }
+
+    private String buildLocalFileUrl(String filePath) {
+        return "file://" + filePath;
     }
 
     private void deleteFiles(JSONArray uris, CallbackContext callbackContext) {
@@ -232,16 +264,9 @@ public class WizAssetsPlugin extends CordovaPlugin {
         if (uri != "") {
             String filePath = buildAssetFilePathFromUri(uri);
             File file = new File(filePath);
-            boolean isDirectory = file.isDirectory();
             boolean deleteSucceed = deleteFile(file);
             if (!deleteSucceed) {
                 throw new IOException(filePath + " could not be deleted.");
-            }
-            // Delete from database
-            if (isDirectory) {
-                wizAssetManager.deleteFolder(filePath);
-            } else {
-                wizAssetManager.deleteFile(filePath);
             }
         }
     }
@@ -503,9 +528,8 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 // Tell Asset Manager to register this download to asset database
                 String fileAbsolutePath = file.getAbsolutePath();
                 Log.d(TAG, "[Downloaded ] " + fileAbsolutePath);
-                wizAssetManager.downloadedAsset(this.uri, fileAbsolutePath);
 
-                this.callbackContext.success("file://" + fileAbsolutePath);
+                this.callbackContext.success(buildLocalFileUrl(fileAbsolutePath));
             } catch (JSONException e) {
                 this.callbackContext.error(JSON_CREATION_ERROR);
                 return null;
