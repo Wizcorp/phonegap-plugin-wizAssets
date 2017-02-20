@@ -22,7 +22,8 @@ enum CDVWizAssetsError {
     FILE_CREATION_ERROR = 7,
     JSON_CREATION_ERROR = 8,
     INITIALIZATION_ERROR = 9,
-    UNREFERENCED_ERROR = 10
+    NOT_FOUND_ERROR = 10,
+    UNREFERENCED_ERROR = 11
 };
 typedef int CDVWizAssetsError;
 

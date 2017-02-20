@@ -177,42 +177,14 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
  */
 - (void)getFileURI:(CDVInvokedUrlCommand *)command {
     CDVPluginResult *pluginResult;
-    NSString *findFile = [command.arguments objectAtIndex:0];
-    NSString *returnURI = @"";
+    NSString *uri = [command.arguments objectAtIndex:0];
 
-    // Example: [0]img, [1]ui, [2]bob.mp3
-    NSMutableArray *fileStruct = [[NSMutableArray alloc] initWithArray:[findFile componentsSeparatedByString:@"/"]];
+    NSString *filePath = [self buildAssetFilePathFromUri:uri];
 
-    // Example: bob.mp3
-    NSString *fileName = [fileStruct lastObject];
-
-    [fileStruct removeLastObject];
-
-    // Example img/ui
-    NSString *findFilePath = [fileStruct componentsJoinedByString:@"/"];
-
-    // Cut out suffix from file name, example: [0]bob, [1]mp3,
-    NSMutableArray *fileTypeStruct = [[NSMutableArray alloc] initWithArray:[fileName componentsSeparatedByString:@"."]];
-
-    if ([[NSBundle mainBundle] pathForResource:[fileTypeStruct objectAtIndex:0]
-                                        ofType:[fileTypeStruct objectAtIndex:1]
-                                   inDirectory:[@"www" stringByAppendingFormat:@"/assets/%@", findFilePath]]) {
-        // Check local path to bundle resources
-        NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
-        NSString *bundleSearchPath = [NSString stringWithFormat:@"%@/%@/%@/%@", bundlePath , @"www", @"assets", findFile];
-
-        // We have locally return same string
-        returnURI = bundleSearchPath;
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:filePath] == YES) {
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:filePath];
     } else {
-        // Check in path to app library/caches
-        NSMutableDictionary *resourceMap = [NSMutableDictionary dictionary];
-
-        [self scanDir:self.cachePath relPath:@"" assetMap:resourceMap];
-
-        // Return URI to storage folder
-        returnURI = [resourceMap objectForKey:findFile];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:returnURI];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsInt:NOT_FOUND_ERROR];
     }
 
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
@@ -224,24 +196,11 @@ NSString *const assetsErrorKey = @"plugins.wizassets.errors";
 - (void)getFileURIs:(CDVInvokedUrlCommand *)command {
     WizLog(@"[WizAssetsPlugin] ******* getfileURIs-> " );
 
-    CDVPluginResult *pluginResult;
-
-    // Path to bundle resources
-    NSString *bundlePath = [[NSBundle mainBundle] resourcePath];
-    NSString *bundleSearchPath = [NSString stringWithFormat:@"%@/%@/%@", bundlePath , @"www", @"assets"];
-
-    // Scan bundle assets
-    NSMutableDictionary *bundleAssetMap = [NSMutableDictionary dictionary];
-    [self scanDir:bundleSearchPath relPath:@"" assetMap:bundleAssetMap];
-
     // Scan downloaded assets
-    NSMutableDictionary *docAssetMap = [NSMutableDictionary dictionary];
-    [self scanDir:self.cachePath relPath:@"" assetMap:docAssetMap];
+    NSMutableDictionary *assetMap = [NSMutableDictionary dictionary];
+    [self scanDir:self.cachePath relPath:@"" assetMap:assetMap];
 
-    NSMutableDictionary *assetMap = [docAssetMap mutableCopy];
-    [assetMap addEntriesFromDictionary:bundleAssetMap];
-
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
+    CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:assetMap];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
