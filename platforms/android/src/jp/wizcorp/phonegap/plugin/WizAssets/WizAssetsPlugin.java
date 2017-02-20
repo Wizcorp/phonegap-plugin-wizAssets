@@ -110,13 +110,15 @@ public class WizAssetsPlugin extends CordovaPlugin {
     public void removeDeprecatedDatabases(String pathToCache) {
         // Removing database version 6.x.x
         String deprecatedDatabasePath = pathToCache + PLUGIN_FOLDER + File.separator + DEPRECATED_DATABASE_NAME;
-        File deprecatedDatabaseFile = new File(deprecatedDatabasePath);
-        deprecatedDatabaseFile.delete();
+        if (!deleteIfExists(deprecatedDatabasePath)) {
+            Log.e(TAG, "Unable to delete deprecated database version 6.x.x at path: " + deprecatedDatabasePath);
+        }
 
         // Removing database version <= 5.x.x
         deprecatedDatabasePath = pathToCache + DEPRECATED_DATABASE_NAME;
-        deprecatedDatabaseFile = new File(deprecatedDatabasePath);
-        deprecatedDatabaseFile.delete();
+        if (!deleteIfExists(deprecatedDatabasePath)) {
+            Log.e(TAG, "Unable to delete deprecated database version <= 5.x.x at path: " + deprecatedDatabasePath);
+        }
     }
 
     @SuppressWarnings("deprecation")
@@ -304,6 +306,11 @@ public class WizAssetsPlugin extends CordovaPlugin {
             return folder.isDirectory();
         }
         return folder.mkdir();
+    }
+
+    private boolean deleteIfExists(String path) {
+        File file = new File(path);
+        return !file.exists() || file.delete();
     }
 
     public class DeleteAssetsCallback {
