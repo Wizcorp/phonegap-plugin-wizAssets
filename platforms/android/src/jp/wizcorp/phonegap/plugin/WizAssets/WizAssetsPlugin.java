@@ -19,6 +19,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.zip.GZIPInputStream;
 
+import java.net.HttpURLConnection;
+import java.io.BufferedInputStream;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
@@ -30,21 +33,11 @@ import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.PluginResult;
-import org.apache.http.Header;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.util.Log;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.BufferedHttpEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 public class WizAssetsPlugin extends CordovaPlugin {
 
@@ -104,7 +97,10 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         removeDeprecatedDatabases(pathToCache);
 
+        disableConnectionReuseIfNecessary();
+
         initialized = true;
+        Log.d(TAG, "initialized");
     }
 
     public void removeDeprecatedDatabases(String pathToCache) {
@@ -417,131 +413,36 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         @Override
         protected Void doInBackground(File... params) {
+            File file = null;
             try {
-                File file = new File(this.filePath);
-
-                // Run async download task
-                File dir = file.getParentFile();
-                if (dir == null || !(dir.mkdirs() || dir.isDirectory())) {
-                    Log.e("WizAssetsPlugin", "Error : subdirectory could not be created");
-                    this.callbackContext.error(createDownloadFileError(DIRECTORY_CREATION_ERROR));
-                    return null;
-                }
-
-                Log.d(TAG, "[Downloading] " + file.getAbsolutePath());
-
-                HttpGet httpRequest;
                 try {
+                    if (!initialized) {
+                        Log.e(TAG, "Plugin not initialized, call initialize");
+                        throw new Exception("Plugin not initialized, call initialize");
+                    }
+                    HttpToFile.setBlockSize(blockSize);
+                    file = new File(this.filePath);
                     URL url = new URL(this.url);
-                    httpRequest = new HttpGet(url.toURI());
-
-                    // Credential check
-                    String credentials = url.getUserInfo();
-                    if (credentials != null) {
-                        // Add Basic Authentication header
-                        httpRequest.setHeader("Authorization", "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP));
-                    }
-                } catch (MalformedURLException e) {
-                    this.callbackContext.error(createDownloadFileError(INVALID_URL_ERROR));
-                    return null;
-                } catch (URISyntaxException e) {
-                    this.callbackContext.error(createDownloadFileError(INVALID_URL_ERROR));
-                    return null;
-                }
-
-                HttpResponse response;
-                HttpClient httpclient = new DefaultHttpClient();
-                try {
-                    response = httpclient.execute(httpRequest);
-                    if (response == null) {
+                    boolean success = HttpToFile.downloadFile(url, file);
+                    if (!success) {
                         this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
-                        return null;
                     }
-                    StatusLine statusLine = response.getStatusLine();
-                    if (statusLine == null) {
-                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_ERROR, "No status available"));
-                        return null;
-                    }
-                    int statusCode = statusLine.getStatusCode();
-                    if (statusCode < 200 || statusCode > 299) {
-                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_ERROR, statusCode));
-                        return null;
-                    }
-                } catch (ClientProtocolException e) {
-                    this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
-                    return null;
                 } catch (IOException e) {
                     this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
-                    return null;
+                } catch (Exception e) {
+                    this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
                 }
-
-                HttpEntity entity = response.getEntity();
-
-                InputStream is = null;
-
-                Header encodingHeader = entity.getContentEncoding();
-                try {
-                    String encodingHeaderValue = encodingHeader != null ? encodingHeader.getValue() : null;
-                    if (encodingHeaderValue != null && encodingHeaderValue.contains("gzip")) {
-                        is = new GZIPInputStream(entity.getContent());
-                    } else {
-                        BufferedHttpEntity bufHttpEntity = new BufferedHttpEntity(entity);
-                        is = bufHttpEntity.getContent();
-                    }
-                    if (is == null) {
-                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_CONTENT_ERROR));
-                        return null;
-                    }
-                } catch (IOException e) {
-                    this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_CONTENT_ERROR));
-                    return null;
+                if (file == null) {
+                    Log.d(TAG, "ERROR: could not get file");
+                    this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                } else {
+                    String fileAbsolutePath = file.getAbsolutePath();
+                    Log.d(TAG, "[DownloadedPlugin ] " + fileAbsolutePath);
+                    callbackContext.success(fileAbsolutePath);
                 }
-
-                byte[] buffer = new byte[blockSize];
-
-                int len1 = 0;
-
-                FileOutputStream fos = null;
-                boolean exceptionThrown = false;
-                try {
-                    fos = new FileOutputStream(file);
-
-                    while ((len1 = is.read(buffer)) > 0) {
-                        fos.write(buffer, 0, len1);
-                    }
-                } catch (FileNotFoundException e) {
-                    exceptionThrown = true;
-                } catch (IOException e) {
-                    exceptionThrown = true;
-                } finally {
-                    if (fos != null) {
-                        try {
-                            fos.close();
-                        } catch (IOException e) {
-                            exceptionThrown = true;
-                        }
-                    }
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        exceptionThrown = true;
-                    }
-                }
-                if (exceptionThrown) {
-                    this.callbackContext.error(createDownloadFileError(FILE_CREATION_ERROR));
-                    return null;
-                }
-
-                // Tell Asset Manager to register this download to asset database
-                String fileAbsolutePath = file.getAbsolutePath();
-                Log.d(TAG, "[Downloaded ] " + fileAbsolutePath);
-
-                this.callbackContext.success(buildLocalFileUrl(fileAbsolutePath));
             } catch (JSONException e) {
-                this.callbackContext.error(JSON_CREATION_ERROR);
-                return null;
+                this.callbackContext.error(JSON_CREATION_ERROR); // TODO: fix errors
             }
-
             return null;
         }
     }
@@ -570,5 +471,12 @@ public class WizAssetsPlugin extends CordovaPlugin {
             errorObject.put("message", "No description");
         }
         return errorObject;
+    }
+
+    private void disableConnectionReuseIfNecessary() {
+        // Work around pre-Froyo bugs in HTTP connection reuse.
+        if (Integer.parseInt(Build.VERSION.SDK) < Build.VERSION_CODES.FROYO) {
+            System.setProperty("http.keepAlive", "false");
+        }
     }
 }

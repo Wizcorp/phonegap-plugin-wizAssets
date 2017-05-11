@@ -2,7 +2,7 @@
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
     id="jp.wizcorp.phonegap.plugin.wizAssetsPlugin"
-    version="6.0.0">
+    version="6.1.0">
 
     <name>Wizard Asset Manager Plugin</name>
     <description>This plugin allows you easily download, lookup and delete files.</description>
@@ -50,6 +50,9 @@
                 <param name="android-package" value="jp.wizcorp.phonegap.plugin.WizAssets.WizAssetsPlugin"/>
             </feature>
         </config-file>
+
+        <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/HttpToFile.java"
+                     target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
 
         <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
                 target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
