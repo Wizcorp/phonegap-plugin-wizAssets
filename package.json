@@ -1,0 +1,39 @@
+{
+  "name": "phonegap-plugin-wizAssets",
+  "version": "6.1.0",
+  "description": "This plugin allows you easily download, lookup and delete files.",
+  "cordova": {
+    "id": "jp.wizcorp.phonegap.plugin.wizAssetsPlugin",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tatsujinichi/phonegap-plugin-wizAssets.git"
+  },
+  "keywords": [
+    "asset",
+    "manager",
+    "wizAssets",
+    "file",
+    "wizcorp",
+    "wizard",
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Tatsujinichi/phonegap-plugin-wizAssets/issues"
+  },
+  "homepage": "https://github.com/Tatsujinichi/phonegap-plugin-wizAssets#readme"
+}
