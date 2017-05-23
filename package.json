@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Tatsujinichi/phonegap-plugin-wizAssets.git"
+    "url": "git+https://github.com/Wizcorp/phonegap-plugin-wizAssets.git"
   },
   "keywords": [
     "asset",
@@ -33,7 +33,7 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Tatsujinichi/phonegap-plugin-wizAssets/issues"
+    "url": "https://github.com/Wizcorp/phonegap-plugin-wizAssets/issues"
   },
-  "homepage": "https://github.com/Tatsujinichi/phonegap-plugin-wizAssets#readme"
+  "homepage": "https://github.com/Wizcorp/phonegap-plugin-wizAssets#readme"
 }
