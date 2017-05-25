@@ -421,6 +421,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
                         throw new Exception("Plugin not initialized, call initialize");
                     }
                     HttpToFile.setBlockSize(blockSize);
+                    HttpToFile.setLogger(new AndroidLogger());
                     file = new File(this.filePath);
                     URL url = new URL(this.url);
                     boolean success = HttpToFile.downloadFile(url, file);

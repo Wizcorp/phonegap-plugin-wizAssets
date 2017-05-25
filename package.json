@@ -1,6 +1,6 @@
 {
   "name": "phonegap-plugin-wizAssets",
-  "version": "6.1.0",
+  "version": "6.0.0",
   "description": "This plugin allows you easily download, lookup and delete files.",
   "cordova": {
     "id": "jp.wizcorp.phonegap.plugin.wizAssetsPlugin",
@@ -30,7 +30,7 @@
       "version": ">=3.0.0"
     }
   ],
-  "author": "",
+  "author": "Wizcorp Inc",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Wizcorp/phonegap-plugin-wizAssets/issues"

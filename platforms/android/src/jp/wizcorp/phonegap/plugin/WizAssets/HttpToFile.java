@@ -4,27 +4,30 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import android.util.Log;
+import jp.wizcorp.phonegap.plugin.WizAssets.ILogger;
 
-public class HttpToFile {
-    private static int _blockSize = 8192;
+public final class HttpToFile {
+    private static int _blockSize;
     private static char[] _emptyCharArray = new char[0];
-    private static String TAG = "WizAssetsPlugin"; // TODO: refactor out to error reporting / logging class?
+    private static final String TAG = "WizAssetsPlugin";
+    private static ILogger _logger;
+
+    public static void setLogger(ILogger logger) {
+        _logger = logger;
+    }
 
     public static void setBlockSize(int blockSize) {
         _blockSize = blockSize;
     }
 
-    // TODO: if fail this.callbackContext.error(createDownloadFileError(FILE_CREATION_ERROR));
-    // TODO: if pass this.callbackContext.success(buildLocalFileUrl(fileAbsolutePath));
     public static boolean downloadFile(URL url, File file) throws IOException {
-        Log.d(TAG, "[Downloading to] " + file.getAbsolutePath());
+        _logger.logDebug(TAG, "[Downloading to] " + file.getAbsolutePath());
         BufferedInputStream inputStream = null;
         HttpURLConnection urlConnection = null;
         Boolean successfulWrite = false;
         try {
-            if (!isFileOk(file)) {
-                Log.e(TAG, "file path error");
+            if (!createPath(file)) {
+                _logger.logError(TAG, "file path error");
             } else {
                 authenticate(url);
                 urlConnection = (HttpURLConnection) url.openConnection();
@@ -53,19 +56,17 @@ public class HttpToFile {
                 urlConnection.disconnect();
                 String newUrl = urlConnection.getHeaderField("Location");
                 urlConnection = (HttpURLConnection) new URL(newUrl).openConnection();
-                Log.d(TAG, "Redirect to URL : " + newUrl);
+                _logger.logDebug(TAG, "Redirect to URL : " + newUrl);
             }
         }
-        Log.d(TAG, "Response Code ... " + status);
+        _logger.logDebug(TAG, "Response Code ... " + status);
         return urlConnection;
     }
 
-    private static Boolean isFileOk(File file) {
+    private static Boolean createPath(File file) {
         File dir = file.getParentFile();
         if (dir == null || !(dir.mkdirs() || dir.isDirectory())) {
-            Log.e(TAG, "Error: subdirectory could not be created");
-            // TODO:
-            // this.callbackContext.error(createDownloadFileError(DIRECTORY_CREATION_ERROR));
+            _logger.logError(TAG, "Error: subdirectory could not be created");
             return false;
         }
         return true;
@@ -82,7 +83,6 @@ public class HttpToFile {
             while ((len1 = inputStream.read(buffer)) > 0) {
                 fos.write(buffer, 0, len1);
                 String data = new String(buffer, "UTF-8");
-                //Log.d(TAG, data);
             }
         } catch (FileNotFoundException e) {
             printError(e);
@@ -112,7 +112,7 @@ public class HttpToFile {
         }
         // Tell Asset Manager to register this download to asset database
         String fileAbsolutePath = file.getAbsolutePath();
-        Log.d(TAG, "[DownloadedHttpToFile ] " + fileAbsolutePath);
+        _logger.logDebug(TAG, "[DownloadedHttpToFile ] " + fileAbsolutePath);
         return true;
     }
 
@@ -128,6 +128,6 @@ public class HttpToFile {
     }
 
     private static void printError(Exception e) {
-        Log.e(TAG, "error: " + e);
+        _logger.logError(TAG, "error: " + e);
     }
 }
