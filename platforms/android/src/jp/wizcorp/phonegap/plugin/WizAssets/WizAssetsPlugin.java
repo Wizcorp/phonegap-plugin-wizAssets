@@ -70,7 +70,6 @@ public class WizAssetsPlugin extends CordovaPlugin {
     private static final String DEPRECATED_DATABASE_NAME = "assets.db";
 
     private String pathToAssets;
-    private int blockSize;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -93,7 +92,10 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
         pathToAssets += File.separator;
 
-        setBlockSize();
+        int blockSize = getBlockSize();
+
+        HttpToFile.setBlockSize(blockSize);
+        HttpToFile.setLogger(new AndroidLogger());
 
         removeDeprecatedDatabases(pathToCache);
 
@@ -119,7 +121,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
-    private void setBlockSize() {
+    private void getBlockSize() {
         android.os.StatFs stat = new android.os.StatFs(pathToAssets);
         long blockSizeLong;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -133,6 +135,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
             blockSizeLong = 16384;
         }
         blockSize = (int)blockSizeLong;
+        return blockSize;
     }
 
     @Override
@@ -420,8 +423,6 @@ public class WizAssetsPlugin extends CordovaPlugin {
                         Log.e(TAG, "Plugin not initialized, call initialize");
                         throw new Exception("Plugin not initialized, call initialize");
                     }
-                    HttpToFile.setBlockSize(blockSize);
-                    HttpToFile.setLogger(new AndroidLogger());
                     file = new File(this.filePath);
                     URL url = new URL(this.url);
                     boolean success = HttpToFile.downloadFile(url, file);
