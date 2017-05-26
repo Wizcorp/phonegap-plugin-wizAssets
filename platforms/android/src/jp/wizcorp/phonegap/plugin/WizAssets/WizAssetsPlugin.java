@@ -17,10 +17,6 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.zip.GZIPInputStream;
-
-import java.net.HttpURLConnection;
-import java.io.BufferedInputStream;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -121,7 +117,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
 
     @SuppressWarnings("deprecation")
     @SuppressLint("NewApi")
-    private void getBlockSize() {
+    private int getBlockSize() {
         android.os.StatFs stat = new android.os.StatFs(pathToAssets);
         long blockSizeLong;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -134,8 +130,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
         } else if (blockSizeLong > 16384) {
             blockSizeLong = 16384;
         }
-        blockSize = (int)blockSizeLong;
-        return blockSize;
+        return (int)blockSizeLong;
     }
 
     @Override

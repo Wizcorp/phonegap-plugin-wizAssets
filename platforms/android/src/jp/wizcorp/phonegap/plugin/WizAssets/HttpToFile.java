@@ -110,7 +110,6 @@ public final class HttpToFile {
         if (exceptionThrown) {
             return false;
         }
-        // Tell Asset Manager to register this download to asset database
         String fileAbsolutePath = file.getAbsolutePath();
         _logger.logDebug(TAG, "[DownloadedHttpToFile ] " + fileAbsolutePath);
         return true;
