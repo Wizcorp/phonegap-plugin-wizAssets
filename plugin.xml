@@ -57,6 +57,12 @@
         <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/WizAssetsPlugin.java" 
                 target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
 
+        <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/AndroidLogger.java"
+                     target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
+
+        <source-file src="platforms/android/src/jp/wizcorp/phonegap/plugin/WizAssets/ILogger.java"
+                     target-dir="src/jp/wizcorp/phonegap/plugin/WizAssets"/>
+
     </platform>
 
 </plugin>

@@ -1,5 +1,5 @@
 package jp.wizcorp.phonegap.plugin.WizAssets;
-import android.utils.Log;
+import android.util.Log;
 
 public class AndroidLogger implements ILogger {
     public void logInfo(String tag, String message) {
@@ -11,6 +11,6 @@ public class AndroidLogger implements ILogger {
     }
 
     public void logError(String tag, String message) {
-        Lod.e(tag, message);
+        Log.e(tag, message);
     }
 }

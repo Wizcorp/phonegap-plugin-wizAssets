@@ -4,7 +4,6 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import jp.wizcorp.phonegap.plugin.WizAssets.ILogger;
 
 public final class HttpToFile {
     private static int _blockSize;
