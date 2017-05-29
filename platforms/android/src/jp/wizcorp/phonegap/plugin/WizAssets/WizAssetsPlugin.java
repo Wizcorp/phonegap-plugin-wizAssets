@@ -423,15 +423,19 @@ public class WizAssetsPlugin extends CordovaPlugin {
                     int httpStatusCode = HttpToFile.downloadFile(url, file);
                     if (httpStatusCode < 200 || httpStatusCode > 299) {
                         this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_ERROR, httpStatusCode));
+                        return null;
                     }
                 } catch (IOException e) {
                     this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                    return null;
                 } catch (Exception e) {
                     this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                    return null;
                 }
                 if (file == null) {
                     Log.d(TAG, "ERROR: could not get file");
                     this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                    return null;
                 } else {
                     String fileAbsolutePath = file.getAbsolutePath();
                     Log.d(TAG, "[DownloadedPlugin ] " + fileAbsolutePath);
