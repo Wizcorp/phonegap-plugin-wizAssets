@@ -420,9 +420,9 @@ public class WizAssetsPlugin extends CordovaPlugin {
                     }
                     file = new File(this.filePath);
                     URL url = new URL(this.url);
-                    boolean success = HttpToFile.downloadFile(url, file);
-                    if (!success) {
-                        this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
+                    int httpStatusCode = HttpToFile.downloadFile(url, file);
+                    if (httpStatusCode < 200 || httpStatusCode > 299) {
+                        this.callbackContext.error(createDownloadFileError(HTTP_REQUEST_ERROR, httpStatusCode));
                     }
                 } catch (IOException e) {
                     this.callbackContext.error(createDownloadFileError(CONNECTIVITY_ERROR));
@@ -438,7 +438,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
                     callbackContext.success(fileAbsolutePath);
                 }
             } catch (JSONException e) {
-                this.callbackContext.error(JSON_CREATION_ERROR); // TODO: fix errors
+                this.callbackContext.error(JSON_CREATION_ERROR);
             }
             return null;
         }

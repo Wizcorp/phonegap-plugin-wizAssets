@@ -7,7 +7,6 @@ import java.net.URL;
 
 public final class HttpToFile {
     private static int _blockSize;
-    private static char[] _emptyCharArray = new char[0];
     private static final String TAG = "WizAssetsPlugin";
     private static ILogger _logger;
 
@@ -19,11 +18,11 @@ public final class HttpToFile {
         _blockSize = blockSize;
     }
 
-    public static boolean downloadFile(URL url, File file) throws IOException {
+    public static int downloadFile(URL url, File file) throws IOException, Exception {
         _logger.logDebug(TAG, "[Downloading to] " + file.getAbsolutePath());
         BufferedInputStream inputStream = null;
         HttpURLConnection urlConnection = null;
-        Boolean successfulWrite = false;
+        int httpStatus = -1;
         try {
             if (!createPath(file)) {
                 _logger.logError(TAG, "file path error");
@@ -31,19 +30,23 @@ public final class HttpToFile {
                 authenticate(url);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection = handleRedirect(urlConnection);
+                httpStatus = urlConnection.getResponseCode();
                 inputStream = new BufferedInputStream(urlConnection.getInputStream());
-                successfulWrite = writeFile(inputStream, file);
+                writeFile(inputStream, file);
             }
         } catch (Exception e) {
             printError(e);
+            throw e;
         } finally {
-            if (inputStream != null)
-                inputStream.close();
-            if (urlConnection != null) {
-                urlConnection.disconnect();
+            try {
+                closeStream(inputStream);
+            } finally {
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
             }
         }
-        return successfulWrite;
+        return httpStatus;
     }
 
     private static HttpURLConnection handleRedirect(HttpURLConnection urlConnection) throws IOException {
@@ -62,7 +65,7 @@ public final class HttpToFile {
         return urlConnection;
     }
 
-    private static Boolean createPath(File file) {
+    private static boolean createPath(File file) {
         File dir = file.getParentFile();
         if (dir == null || !(dir.mkdirs() || dir.isDirectory())) {
             _logger.logError(TAG, "Error: subdirectory could not be created");
@@ -71,11 +74,10 @@ public final class HttpToFile {
         return true;
     }
 
-    private static Boolean writeFile(BufferedInputStream inputStream, File file) {
+    private static void writeFile(BufferedInputStream inputStream, File file) throws IOException {
         byte[] buffer = new byte[_blockSize];
 
         FileOutputStream fos = null;
-        boolean exceptionThrown = false;
         try {
             fos = new FileOutputStream(file);
             int len1;
@@ -83,43 +85,41 @@ public final class HttpToFile {
                 fos.write(buffer, 0, len1);
                 String data = new String(buffer, "UTF-8");
             }
-        } catch (FileNotFoundException e) {
-            printError(e);
-            exceptionThrown = true;
-        } catch (IOException e) {
-            printError(e);
-            exceptionThrown = true;
         } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    printError(e);
-                    exceptionThrown = true;
-                }
-            }
             try {
-                inputStream.close();
+                closeStream(fos);
+            }
+            finally {
+                closeStream(inputStream);
+            }
+        }
+    }
+
+    private static void closeStream(Closeable stream) throws IOException {
+        if (stream != null) {
+            try {
+                stream.close();
             } catch (IOException e) {
                 printError(e);
-                exceptionThrown = true;
+                throw e;
             }
         }
-
-        if (exceptionThrown) {
-            return false;
-        }
-        String fileAbsolutePath = file.getAbsolutePath();
-        _logger.logDebug(TAG, "[DownloadedHttpToFile ] " + fileAbsolutePath);
-        return true;
     }
 
     private static void authenticate(URL url) {
         final String userInfo = url.getUserInfo();
         if (userInfo != null) {
+            String[] infoArray = userInfo.split(":");
+            final String userName = infoArray[0];
+            final char[] pw;
+            if (infoArray.length > 1) {
+                pw = infoArray[1].toCharArray();
+            } else {
+                pw = new char[0];
+            }
             Authenticator.setDefault(new Authenticator() {
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(userInfo, _emptyCharArray);
+                    return new PasswordAuthentication(userName, pw);
                 }
             });
         }
