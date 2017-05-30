@@ -9,6 +9,7 @@ public final class HttpToFile {
     private static int _blockSize;
     private static final String TAG = "WizAssetsPlugin";
     private static ILogger _logger;
+    private static final int MAX_REDIRECTS = 5;
 
     public static void setLogger(ILogger logger) {
         _logger = logger;
@@ -52,10 +53,15 @@ public final class HttpToFile {
 
     private static HttpURLConnection handleRedirect(HttpURLConnection urlConnection) throws IOException {
         int status = urlConnection.getResponseCode();
+        int numRedirects = 0;
         while (status != HttpURLConnection.HTTP_OK
                 && (status == HttpURLConnection.HTTP_MOVED_TEMP
                 || status == HttpURLConnection.HTTP_MOVED_PERM
                 || status == HttpURLConnection.HTTP_SEE_OTHER)) {
+            numRedirects += 1;
+            if (numRedirects >= MAX_REDIRECTS) {
+                throw new IOException("Too many redirects");
+            }
             urlConnection.disconnect();
             String newUrl = urlConnection.getHeaderField("Location");
             urlConnection = (HttpURLConnection) new URL(newUrl).openConnection();
