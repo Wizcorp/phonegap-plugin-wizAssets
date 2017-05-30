@@ -28,6 +28,7 @@ public final class HttpToFile {
                 _logger.logError(TAG, "file path error");
             } else {
                 authenticate(url);
+
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection = handleRedirect(urlConnection);
                 httpStatus = urlConnection.getResponseCode();
@@ -51,15 +52,15 @@ public final class HttpToFile {
 
     private static HttpURLConnection handleRedirect(HttpURLConnection urlConnection) throws IOException {
         int status = urlConnection.getResponseCode();
-        if (status != HttpURLConnection.HTTP_OK) {
-            if (status == HttpURLConnection.HTTP_MOVED_TEMP
-                    || status == HttpURLConnection.HTTP_MOVED_PERM
-                    || status == HttpURLConnection.HTTP_SEE_OTHER) {
-                urlConnection.disconnect();
-                String newUrl = urlConnection.getHeaderField("Location");
-                urlConnection = (HttpURLConnection) new URL(newUrl).openConnection();
-                _logger.logDebug(TAG, "Redirect to URL : " + newUrl);
-            }
+        while (status != HttpURLConnection.HTTP_OK
+                && (status == HttpURLConnection.HTTP_MOVED_TEMP
+                || status == HttpURLConnection.HTTP_MOVED_PERM
+                || status == HttpURLConnection.HTTP_SEE_OTHER)) {
+            urlConnection.disconnect();
+            String newUrl = urlConnection.getHeaderField("Location");
+            urlConnection = (HttpURLConnection) new URL(newUrl).openConnection();
+            _logger.logDebug(TAG, "Redirect to URL : " + newUrl);
+            status = urlConnection.getResponseCode();
         }
         _logger.logDebug(TAG, "Response Code ... " + status);
         return urlConnection;
