@@ -4,6 +4,7 @@ import java.net.Authenticator;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.zip.GZIPInputStream;
 
 public final class HttpToFile {
     private static int _blockSize;
@@ -21,7 +22,7 @@ public final class HttpToFile {
 
     public static int downloadFile(URL url, File file) throws IOException, Exception {
         _logger.logDebug(TAG, "[Downloading to] " + file.getAbsolutePath());
-        BufferedInputStream inputStream = null;
+        InputStream inputStream = null;
         HttpURLConnection urlConnection = null;
         int httpStatus = -1;
         try {
@@ -31,9 +32,17 @@ public final class HttpToFile {
                 authenticate(url);
 
                 urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestProperty("Accept-Encoding", "gzip");
                 urlConnection = handleRedirect(urlConnection);
                 httpStatus = urlConnection.getResponseCode();
-                inputStream = new BufferedInputStream(urlConnection.getInputStream());
+
+                String encoding = urlConnection.getHeaderField("Content-Encoding");
+                inputStream = urlConnection.getInputStream();
+                if (encoding != null && encoding.equals("gzip")) {
+                    inputStream = new GZIPInputStream(inputStream);
+                }
+
+                inputStream = new BufferedInputStream(inputStream);
                 writeFile(inputStream, file);
             }
         } catch (Exception e) {
@@ -65,6 +74,7 @@ public final class HttpToFile {
             urlConnection.disconnect();
             String newUrl = urlConnection.getHeaderField("Location");
             urlConnection = (HttpURLConnection) new URL(newUrl).openConnection();
+            urlConnection.setRequestProperty("Accept-Encoding", "gzip");
             _logger.logDebug(TAG, "Redirect to URL : " + newUrl);
             status = urlConnection.getResponseCode();
         }
@@ -81,7 +91,7 @@ public final class HttpToFile {
         return true;
     }
 
-    private static void writeFile(BufferedInputStream inputStream, File file) throws IOException {
+    private static void writeFile(InputStream inputStream, File file) throws IOException {
         byte[] buffer = new byte[_blockSize];
 
         FileOutputStream fos = null;
