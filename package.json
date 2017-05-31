@@ -1,0 +1,39 @@
+{
+  "name": "phonegap-plugin-wizAssets",
+  "version": "6.0.0",
+  "description": "This plugin allows to easily download, lookup and delete your app assets.",
+  "cordova": {
+    "id": "jp.wizcorp.phonegap.plugin.wizAssetsPlugin",
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wizcorp/phonegap-plugin-wizAssets.git"
+  },
+  "keywords": [
+    "asset",
+    "manager",
+    "wizAssets",
+    "file",
+    "wizcorp",
+    "wizard",
+    "ecosystem:cordova",
+    "cordova-ios",
+    "cordova-android"
+  ],
+  "engines": [
+    {
+      "name": "cordova",
+      "version": ">=3.0.0"
+    }
+  ],
+  "author": "Wizcorp Inc",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Wizcorp/phonegap-plugin-wizAssets/issues"
+  },
+  "homepage": "https://github.com/Wizcorp/phonegap-plugin-wizAssets#readme"
+}
