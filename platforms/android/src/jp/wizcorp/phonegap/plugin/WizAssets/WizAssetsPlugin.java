@@ -439,7 +439,7 @@ public class WizAssetsPlugin extends CordovaPlugin {
                 } else {
                     String fileAbsolutePath = file.getAbsolutePath();
                     Log.d(TAG, "[DownloadedPlugin ] " + fileAbsolutePath);
-                    callbackContext.success(fileAbsolutePath);
+                    callbackContext.success(buildLocalFileUrl(fileAbsolutePath));
                 }
             } catch (JSONException e) {
                 this.callbackContext.error(JSON_CREATION_ERROR);
