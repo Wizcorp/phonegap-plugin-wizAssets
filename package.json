@@ -1,6 +1,6 @@
 {
   "name": "phonegap-plugin-wizAssets",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "description": "This plugin allows to easily download, lookup and delete your app assets.",
   "cordova": {
     "id": "jp.wizcorp.phonegap.plugin.wizAssetsPlugin",
